@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClearName — Missing Persons Cross-Reference System</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080a0e;
+  --surface: #0e1118;
+  --surface2: #141820;
+  --border: #1e2530;
+  --border2: #2a3340;
+  --text: #d4dce8;
+  --muted: #5a6a7e;
+  --accent: #00d4ff;
+  --accent2: #0099cc;
+  --high: #ff4757;
+  --high-bg: rgba(255,71,87,0.1);
+  --med: #ffa502;
+  --med-bg: rgba(255,165,2,0.1);
+  --low: #2ed573;
+  --low-bg: rgba(46,213,115,0.1);
+  --for: #2ed573;
+  --against: #ff4757;
+  --verified: #2ed573;
+  --excluded: #ff4757;
+  --unsure: #ffa502;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8,10,14,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 48px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.nav-logo span { color: var(--text); }
+
+.nav-links { display: flex; gap: 24px; list-style: none; align-items: center; }
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--accent); }
+
+.progress-pill {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--verified);
+  display: inline-block;
+}
+
+.hero {
+  position: relative;
+  z-index: 1;
+  padding: 60px 48px 48px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-tag::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(40px, 7vw, 80px);
+  line-height: 0.9;
+  letter-spacing: 2px;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.hero h1 em { font-style: normal; color: var(--accent); display: block; }
+
+.hero-desc {
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 32px;
+}
+
+.hero-stats { display: flex; gap: 40px; flex-wrap: wrap; }
+
+.hero-stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: #fff;
+  line-height: 1;
+}
+
+.hero-stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 60px);
+}
+
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 28px 20px;
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+
+.sidebar-section { margin-bottom: 28px; }
+
+.sidebar-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.search-box {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box:focus { border-color: var(--accent); }
+.search-box::placeholder { color: var(--muted); }
+
+.filter-group { display: flex; flex-direction: column; gap: 5px; }
+
+.filter-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.filter-chip:hover { border-color: var(--border2); background: var(--surface2); }
+.filter-chip.active { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+.filter-chip.high.active { border-color: var(--high); color: var(--high); background: var(--high-bg); }
+.filter-chip.med.active { border-color: var(--med); color: var(--med); background: var(--med-bg); }
+.filter-chip.verified-filter.active { border-color: var(--verified); color: var(--verified); background: rgba(46,213,115,0.08); }
+.filter-chip.excluded-filter.active { border-color: var(--excluded); color: var(--excluded); background: rgba(255,71,87,0.08); }
+.filter-chip.unreviewed-filter.active { border-color: var(--muted); color: var(--text); background: var(--surface2); }
+
+.chip-count {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--surface);
+  padding: 1px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.state-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+}
+
+.state-btn {
+  padding: 5px 2px;
+  text-align: center;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.state-btn:hover { border-color: var(--accent); color: var(--accent); }
+.state-btn.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+.state-btn.has-high { border-color: rgba(255,71,87,0.4); color: var(--high); }
+.state-btn.active.has-high { background: var(--high); border-color: var(--high); color: #fff; }
+
+.content { padding: 28px 36px; }
+
+.content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.content-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.result-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.load-banner {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.load-banner p { color: var(--muted); font-size: 13px; }
+.load-banner strong { color: var(--text); }
+
+.btn {
+  padding: 8px 18px;
+  border-radius: 5px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+.btn:hover { background: var(--accent); color: #000; }
+.btn-primary { background: var(--accent); color: #000; font-weight: 600; }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn-sm { padding: 5px 12px; font-size: 11px; }
+.btn-verified { border-color: var(--verified); color: var(--verified); }
+.btn-verified:hover { background: var(--verified); color: #000; }
+.btn-excluded { border-color: var(--excluded); color: var(--excluded); }
+.btn-excluded:hover { background: var(--excluded); color: #fff; }
+.btn-unsure { border-color: var(--unsure); color: var(--unsure); }
+.btn-unsure:hover { background: var(--unsure); color: #000; }
+
+.file-input-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
+.file-input-wrapper input[type=file] { position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+.notice {
+  background: rgba(0,212,255,0.05);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  font-family: 'DM Mono', monospace;
+}
+.notice strong { color: var(--accent); }
+
+.cards-container { display: flex; flex-direction: column; gap: 10px; }
+
+/* MATCH CARD */
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border2); }
+.card.high { border-left: 3px solid var(--high); }
+.card.medium { border-left: 3px solid var(--med); }
+.card.low { border-left: 3px solid var(--low); }
+.card.status-verified { border-left: 3px solid var(--verified); opacity: 0.85; }
+.card.status-excluded { border-left: 3px solid var(--excluded); opacity: 0.6; }
+.card.status-unsure { border-left: 3px solid var(--unsure); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.015);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-header-left { display: flex; align-items: center; gap: 10px; }
+
+.tier-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+.tier-badge.high { background: var(--high-bg); color: var(--high); border: 1px solid var(--high); }
+.tier-badge.medium { background: var(--med-bg); color: var(--med); border: 1px solid var(--med); }
+.tier-badge.low { background: var(--low-bg); color: var(--low); border: 1px solid var(--low); }
+
+.status-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+.status-badge.verified { background: rgba(46,213,115,0.15); color: var(--verified); border: 1px solid var(--verified); }
+.status-badge.excluded { background: rgba(255,71,87,0.15); color: var(--excluded); border: 1px solid var(--excluded); }
+.status-badge.unsure { background: rgba(255,165,2,0.15); color: var(--unsure); border: 1px solid var(--unsure); }
+
+.card-header-right { display: flex; align-items: center; gap: 10px; }
+
+.score-box {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  color: #fff;
+  line-height: 1;
+}
+.score-box span { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+.review-btn {
+  padding: 5px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+.review-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.card-body {
+  display: grid;
+  grid-template-columns: 1fr 30px 1fr;
+  padding: 14px 16px;
+}
+.case-col { padding: 0 10px; }
+.case-col:first-child { padding-left: 0; border-right: 1px solid var(--border); }
+.case-col:last-child { padding-right: 0; }
+.divider { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 14px; }
+.case-type { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.case-name { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 3px; }
+.case-meta { color: var(--muted); font-size: 11px; margin-bottom: 1px; font-family: 'DM Mono', monospace; }
+.case-link { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; color: var(--accent); text-decoration: none; font-size: 11px; font-family: 'DM Mono', monospace; transition: opacity 0.15s; }
+.case-link:hover { opacity: 0.7; }
+
+.evidence { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border); background: rgba(0,0,0,0.15); }
+.evidence-col { padding: 10px 16px; }
+.evidence-col:first-child { border-right: 1px solid var(--border); }
+.evidence-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px; font-weight: 500; text-transform: uppercase; margin-bottom: 5px; }
+.evidence-title.for { color: var(--for); }
+.evidence-title.against { color: var(--against); }
+.evidence-col ul { list-style: none; }
+.evidence-col ul li { font-size: 11px; color: var(--muted); padding: 1px 0 1px 12px; position: relative; line-height: 1.5; }
+.evidence-col:first-child ul li::before { content: "+"; position: absolute; left: 0; color: var(--for); font-weight: 700; }
+.evidence-col:last-child ul li::before { content: "!"; position: absolute; left: 0; color: var(--against); font-weight: 700; }
+
+/* REVIEW PANEL */
+.review-panel {
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  padding: 16px;
+  display: none;
+}
+.review-panel.open { display: block; }
+
+.review-panel-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.review-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.review-option {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.review-option:hover { border-color: var(--border2); background: var(--surface); }
+.review-option.selected-verified { border-color: var(--verified); background: rgba(46,213,115,0.08); }
+.review-option.selected-excluded { border-color: var(--excluded); background: rgba(255,71,87,0.08); }
+.review-option.selected-unsure { border-color: var(--unsure); background: rgba(255,165,2,0.08); }
+
+.review-option-icon { font-size: 20px; margin-bottom: 4px; }
+.review-option-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+.review-option.verified .review-option-label { color: var(--verified); }
+.review-option.excluded .review-option-label { color: var(--excluded); }
+.review-option.unsure .review-option-label { color: var(--unsure); }
+
+.review-form { display: none; }
+.review-form.show { display: block; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+
+.form-input, .form-textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.form-input:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 60px; }
+
+.review-actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
+
+.submit-namus-btn {
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #000;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.submit-namus-btn:hover { background: var(--accent2); border-color: var(--accent2); }
+
+.save-review-btn {
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+}
+.save-review-btn:hover { border-color: var(--text); }
+
+.cancel-btn {
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+}
+.cancel-btn:hover { color: var(--text); }
+
+/* PROGRESS BAR */
+.progress-section {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-header span {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.progress-bar-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--verified), var(--accent));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+.progress-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.progress-stat {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.verified { background: var(--verified); }
+.dot.excluded { background: var(--excluded); }
+.dot.unsure { background: var(--unsure); }
+.dot.unreviewed { background: var(--muted); }
+
+.export-btn {
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.export-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state h3 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--border2); margin-bottom: 8px; }
+
+@media (max-width: 900px) {
+  nav { padding: 0 16px; }
+  .hero { padding: 32px 16px; }
+  .main { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .content { padding: 20px 16px; }
+  .review-options { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">CLEAR<span>NAME</span></a>
+  <ul class="nav-links">
+    <li>
+      <div class="progress-pill">
+        <span class="progress-dot"></span>
+        <span id="nav-progress">0 reviewed</span>
+      </div>
+    </li>
+    <li><button class="export-btn" onclick="showGuide()">Guide</button></li>
+    <li><button class="export-btn" onclick="exportReviewed()">Export Reviews</button></li>
+  </ul>
+</nav>
+
+<!-- GUIDE MODAL -->
+<div id="guideOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:999;overflow-y:auto;padding:40px 20px;">
+  <div style="max-width:700px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+    <div style="padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:Bebas Neue,sans-serif;font-size:28px;letter-spacing:2px;color:#fff;">ClearName Guide</div>
+        <div style="font-family:DM Mono,monospace;font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:2px;">HOW TO USE THIS TOOL</div>
+      </div>
+      <button onclick="hideGuide()" style="background:transparent;border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 12px;">&times;</button>
+    </div>
+    <div style="padding:28px;font-family:DM Sans,sans-serif;">
+
+      <div style="margin-bottom:24px;">
+        <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">What is ClearName?</div>
+        <p style="color:var(--muted);font-size:14px;line-height:1.7;">ClearName matches <strong style="color:var(--text);">missing persons reports</strong> against <strong style="color:var(--text);">unidentified remains cases</strong> from NamUs, surfacing potential connections missed due to jurisdictional gaps.</p>
+        <div style="background:rgba(255,165,2,0.06);border:1px solid rgba(255,165,2,0.2);border-radius:6px;padding:12px 16px;margin-top:12px;">
+          <p style="color:var(--med);font-size:12px;font-family:DM Mono,monospace;">&#9888; All matches are algorithmic candidates only — not confirmed identifications. Every match must be verified by a trained investigator before any action is taken.</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Do I need to download anything?</div>
+        <p style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:8px;"><strong style="color:var(--text);">If someone shared a link with you:</strong> No download needed. Open the link and data is already loaded.</p>
+        <p style="color:var(--muted);font-size:14px;line-height:1.7;"><strong style="color:var(--text);">If you have the files locally:</strong> Click Load HTML Reports in the sidebar and select the match_report_XX.html files from your reports/ folder.</p>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">How to review a match</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;">
+            <div style="font-family:Bebas Neue,sans-serif;font-size:22px;color:var(--border2);line-height:1;">1</div>
+            <div><strong style="color:var(--text);font-size:14px;">Open both NamUs case records.</strong><p style="color:var(--muted);font-size:13px;margin-top:2px;">Click View NamUs Case on both sides. Compare physical descriptions, tattoos, scars, clothing, and circumstances.</p></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;">
+            <div style="font-family:Bebas Neue,sans-serif;font-size:22px;color:var(--border2);line-height:1;">2</div>
+            <div><strong style="color:var(--text);font-size:14px;">Check Reasons to Doubt.</strong><p style="color:var(--muted);font-size:13px;margin-top:2px;">If the body was found before the disappearance date, verify dates on NamUs before proceeding.</p></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;">
+            <div style="font-family:Bebas Neue,sans-serif;font-size:22px;color:var(--border2);line-height:1;">3</div>
+            <div><strong style="color:var(--text);font-size:14px;">Check NamUs for existing matches or exclusions.</strong><p style="color:var(--muted);font-size:13px;margin-top:2px;">If this pair already appears on NamUs, do not resubmit it.</p></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;">
+            <div style="font-family:Bebas Neue,sans-serif;font-size:22px;color:var(--border2);line-height:1;">4</div>
+            <div><strong style="color:var(--text);font-size:14px;">Select a status and save.</strong><p style="color:var(--muted);font-size:13px;margin-top:2px;">Click Review on the card. Choose <span style="color:var(--verified);">Verified</span>, <span style="color:var(--excluded);">Excluded</span>, or <span style="color:var(--unsure);">Unsure</span>. Add notes and click Save Review.</p></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;">
+            <div style="font-family:Bebas Neue,sans-serif;font-size:22px;color:var(--border2);line-height:1;">5</div>
+            <div><strong style="color:var(--text);font-size:14px;">Submit verified matches to NamUs.</strong><p style="color:var(--muted);font-size:13px;margin-top:2px;">Click Submit to NamUs Case Officer to open a pre-filled email with all match details ready to send.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Score breakdown</div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-radius:5px;border:1px solid var(--border);font-family:DM Mono,monospace;font-size:12px;"><span style="color:var(--text);">Sex match</span><span style="color:var(--muted);">15 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-radius:5px;border:1px solid var(--border);font-family:DM Mono,monospace;font-size:12px;"><span style="color:var(--text);">Race/ethnicity overlap</span><span style="color:var(--muted);">15 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-radius:5px;border:1px solid var(--border);font-family:DM Mono,monospace;font-size:12px;"><span style="color:var(--text);">Age compatibility</span><span style="color:var(--muted);">up to 20 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-radius:5px;border:1px solid var(--border);font-family:DM Mono,monospace;font-size:12px;"><span style="color:var(--text);">Same state / county</span><span style="color:var(--muted);">up to 10 pts</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-radius:5px;border:1px solid var(--border);font-family:DM Mono,monospace;font-size:12px;"><span style="color:var(--text);">Date proximity</span><span style="color:var(--muted);">up to 40 pts</span></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="padding:6px 12px;background:var(--high-bg);border:1px solid var(--high);border-radius:5px;font-family:DM Mono,monospace;font-size:11px;color:var(--high);">HIGH = 75+</div>
+          <div style="padding:6px 12px;background:var(--med-bg);border:1px solid var(--med);border-radius:5px;font-family:DM Mono,monospace;font-size:11px;color:var(--med);">MEDIUM = 55-74</div>
+          <div style="padding:6px 12px;background:var(--low-bg);border:1px solid var(--low);border-radius:5px;font-family:DM Mono,monospace;font-size:11px;color:var(--low);">LOW = below 55</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Important rules</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:10px;font-size:13px;color:var(--muted);"><span style="color:var(--against);font-weight:700;">!</span><span>Do <strong style="color:var(--text);">not</strong> submit matches already listed as exclusions on NamUs.</span></div>
+          <div style="display:flex;gap:10px;font-size:13px;color:var(--muted);"><span style="color:var(--against);font-weight:700;">!</span><span>Do <strong style="color:var(--text);">not</strong> contact families directly based on these results.</span></div>
+          <div style="display:flex;gap:10px;font-size:13px;color:var(--muted);"><span style="color:var(--against);font-weight:700;">!</span><span>Always verify the full NamUs case record before submitting.</span></div>
+          <div style="display:flex;gap:10px;font-size:13px;color:var(--muted);"><span style="color:var(--for);font-weight:700;">+</span><span>Start with <strong style="color:var(--text);">HIGH confidence matches</strong> — filter using the sidebar.</span></div>
+          <div style="display:flex;gap:10px;font-size:13px;color:var(--muted);"><span style="color:var(--for);font-weight:700;">+</span><span>Your reviews are saved in your browser. Use Export Reviews to save a CSV backup.</span></div>
+        </div>
+      </div>
+
+      <button onclick="hideGuide()" style="width:100%;padding:12px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#000;font-family:DM Mono,monospace;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">Got it - start reviewing</button>
+    </div>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="hero-tag">Missing Persons Cross-Reference System</div>
+  <h1>Give the nameless<em>back their names.</em></h1>
+  <p class="hero-desc">ClearName cross-references missing persons reports against unidentified remains across all 50 states, surfacing potential matches that fell through jurisdictional gaps. Load your state reports below to begin reviewing candidates.</p>
+  <div class="hero-stats">
+    <div><div class="hero-stat-num" id="stat-states">0</div><div class="hero-stat-label">States Loaded</div></div>
+    <div><div class="hero-stat-num" id="stat-candidates">0</div><div class="hero-stat-label">Candidates</div></div>
+    <div><div class="hero-stat-num" id="stat-high">0</div><div class="hero-stat-label">High Confidence</div></div>
+    <div><div class="hero-stat-num" id="stat-reviewed">0</div><div class="hero-stat-label">Reviewed</div></div>
+  </div>
+</section>
+
+<div class="main">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Search</div>
+      <input type="text" class="search-box" id="searchInput" placeholder="Name or case number...">
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Confidence</div>
+      <div class="filter-group">
+        <button class="filter-chip active" onclick="setFilter('tier','ALL',this)">All Tiers <span class="chip-count" id="count-all">0</span></button>
+        <button class="filter-chip high" onclick="setFilter('tier','HIGH',this)">High <span class="chip-count" id="count-high">0</span></button>
+        <button class="filter-chip med" onclick="setFilter('tier','MEDIUM',this)">Medium <span class="chip-count" id="count-med">0</span></button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Review Status</div>
+      <div class="filter-group">
+        <button class="filter-chip unreviewed-filter" onclick="setFilter('status','unreviewed',this)">Unreviewed <span class="chip-count" id="count-unreviewed">0</span></button>
+        <button class="filter-chip verified-filter" onclick="setFilter('status','verified',this)">Verified <span class="chip-count" id="count-verified">0</span></button>
+        <button class="filter-chip excluded-filter" onclick="setFilter('status','excluded',this)">Excluded <span class="chip-count" id="count-excluded">0</span></button>
+        <button class="filter-chip unsure" onclick="setFilter('status','unsure',this)">Unsure <span class="chip-count" id="count-unsure">0</span></button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">State</div>
+      <div class="state-grid" id="stateGrid"></div>
+    </div>
+
+    <div class="sidebar-section" id="loadSection" style="display:none;">
+      <div class="sidebar-label">Load Reports</div>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:10px;font-family:'DM Mono',monospace;line-height:1.5;">Select match_report_XX.html files from your reports/ folder.</p>
+      <div class="file-input-wrapper">
+        <button class="btn btn-primary" style="width:100%">Load HTML Reports</button>
+        <input type="file" id="fileInput" accept=".html" multiple>
+      </div>
+      <button class="cancel-btn" style="margin-top:8px;width:100%;text-align:center;" onclick="lockAdmin()">Lock Admin</button>
+    </div>
+
+    <div class="sidebar-section" id="adminLockSection">
+      <div class="sidebar-label">Admin</div>
+      <div style="display:flex;gap:6px;">
+        <input type="password" class="search-box" id="adminPwInput" placeholder="Password..." style="flex:1;" onkeydown="if(event.key==='Enter')unlockAdmin()">
+        <button class="btn btn-sm" onclick="unlockAdmin()">&#8594;</button>
+      </div>
+      <p style="color:var(--muted);font-size:11px;margin-top:8px;font-family:'DM Mono',monospace;">Admin access required to load reports.</p>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="notice">
+      <strong>For investigator review only.</strong> All matches are algorithmic candidates — not confirmed identifications. Verify each case directly on NamUs before submitting to case officers.
+    </div>
+
+    <div class="load-banner" id="loadBanner">
+      <p><strong>No reports loaded.</strong> Click "Load HTML Reports" and select your match_report_XX.html files from the reports/ folder.</p>
+    </div>
+
+    <div id="progressSection" style="display:none">
+      <div class="progress-section">
+        <div class="progress-header">
+          <span>REVIEW PROGRESS</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="progress-stats">
+          <div class="progress-stat"><span class="dot verified"></span><span id="ps-verified">0 verified</span></div>
+          <div class="progress-stat"><span class="dot excluded"></span><span id="ps-excluded">0 excluded</span></div>
+          <div class="progress-stat"><span class="dot unsure"></span><span id="ps-unsure">0 unsure</span></div>
+          <div class="progress-stat"><span class="dot unreviewed"></span><span id="ps-unreviewed">0 unreviewed</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-header" id="contentHeader" style="display:none">
+      <div class="content-title" id="contentTitle">Matches</div>
+      <div class="result-count" id="resultCount">0 shown</div>
+    </div>
+
+    <div class="cards-container" id="cardsContainer"></div>
+    <div class="empty-state" id="emptyState" style="display:none">
+      <h3>No matches found</h3>
+      <p>Try adjusting your filters.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+const ALL_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
+
+let allMatches = [];
+let reviews = JSON.parse(localStorage.getItem('clearname_reviews') || '{}');
+let loadedStates = new Set();
+let stateHighCounts = {};
+let filters = { tier: 'ALL', status: 'ALL', state: 'ALL' };
+let searchQ = '';
+
+function saveReviews() {
+  localStorage.setItem('clearname_reviews', JSON.stringify(reviews));
+}
+
+function buildStateGrid() {
+  const grid = document.getElementById('stateGrid');
+  grid.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'state-btn active';
+  allBtn.style.gridColumn = 'span 2';
+  allBtn.textContent = 'ALL';
+  allBtn.onclick = () => { filters.state = 'ALL'; document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active')); allBtn.classList.add('active'); renderCards(); updateCounts(); };
+  grid.appendChild(allBtn);
+  ALL_STATES.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'state-btn';
+    btn.id = 'state-' + s;
+    btn.textContent = s;
+    btn.onclick = () => { filters.state = s; document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderCards(); updateCounts(); };
+    grid.appendChild(btn);
+  });
+}
+
+function parseReportHTML(html, stateName) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const cards = doc.querySelectorAll('.card');
+  const matches = [];
+  cards.forEach((card, idx) => {
+    const tier = card.dataset.tier || 'LOW';
+    const scoreEl = card.querySelector('.score-box');
+    const score = scoreEl ? parseInt(scoreEl.textContent) : 0;
+    const cols = card.querySelectorAll('.case-col');
+    const mpCol = cols[0]; const upCol = cols[1];
+    const mpName = mpCol ? (mpCol.querySelector('.case-name') || {}).textContent || '' : '';
+    const upName = upCol ? (upCol.querySelector('.case-name') || {}).textContent || '' : '';
+    const mpMetas = mpCol ? Array.from(mpCol.querySelectorAll('.case-meta')).map(m => m.textContent) : [];
+    const upMetas = upCol ? Array.from(upCol.querySelectorAll('.case-meta')).map(m => m.textContent) : [];
+    const mpLink = mpCol ? (mpCol.querySelector('.case-link') || {}).href || '' : '';
+    const upLink = upCol ? (upCol.querySelector('.case-link') || {}).href || '' : '';
+    const mpId = mpLink.split('/').pop() || '';
+    const upId = upLink.split('/').pop() || (upName.replace('Case #','') || '');
+    const forItems = Array.from(card.querySelectorAll('.evidence-col:first-child li')).map(li => li.textContent);
+    const againstItems = Array.from(card.querySelectorAll('.evidence-col:last-child li')).map(li => li.textContent);
+    const matchId = stateName + '_' + (mpId || idx) + '_' + (upId || idx);
+    matches.push({ matchId, tier, score, state: stateName, mpName, upName, mpMeta: mpMetas, upMeta: upMetas, mpLink, upLink, mpId, upId, forItems, againstItems });
+  });
+  return matches;
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  let loaded = 0;
+  files.forEach(file => {
+    const stateMatch = file.name.match(/match_report_([A-Z]{2,3})\.html/i);
+    const stateName = stateMatch ? stateMatch[1].toUpperCase() : 'XX';
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const matches = parseReportHTML(ev.target.result, stateName);
+      allMatches = allMatches.filter(m => m.state !== stateName).concat(matches);
+      loadedStates.add(stateName);
+      stateHighCounts[stateName] = matches.filter(m => m.tier === 'HIGH').length;
+      loaded++;
+      if (loaded === files.length) {
+        document.getElementById('loadBanner').style.display = 'none';
+        document.getElementById('contentHeader').style.display = 'flex';
+        document.getElementById('progressSection').style.display = 'block';
+        updateAll();
+      }
+    };
+    reader.readAsText(file);
+  });
+});
+
+function getReviewStatus(matchId) {
+  return reviews[matchId] ? reviews[matchId].status : 'unreviewed';
+}
+
+function getFiltered() {
+  return allMatches.filter(m => {
+    if (filters.tier !== 'ALL' && m.tier !== filters.tier) return false;
+    if (filters.state !== 'ALL' && m.state !== filters.state) return false;
+    const status = getReviewStatus(m.matchId);
+    if (filters.status !== 'ALL' && status !== filters.status) return false;
+    if (searchQ) {
+      const q = searchQ.toLowerCase();
+      const s = (m.mpName + ' ' + m.upName + ' ' + m.mpMeta.join(' ') + ' ' + m.upMeta.join(' ')).toLowerCase();
+      if (!s.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function updateAll() {
+  updateStats();
+  updateStateButtons();
+  updateCounts();
+  updateProgress();
+  renderCards();
+}
+
+function updateStats() {
+  animateNum('stat-states', loadedStates.size);
+  animateNum('stat-candidates', allMatches.length);
+  animateNum('stat-high', allMatches.filter(m => m.tier === 'HIGH').length);
+  const reviewed = Object.keys(reviews).filter(id => allMatches.find(m => m.matchId === id)).length;
+  animateNum('stat-reviewed', reviewed);
+  document.getElementById('nav-progress').textContent = reviewed + ' reviewed';
+}
+
+function updateProgress() {
+  const total = allMatches.length;
+  const verified = allMatches.filter(m => getReviewStatus(m.matchId) === 'verified').length;
+  const excluded = allMatches.filter(m => getReviewStatus(m.matchId) === 'excluded').length;
+  const unsure = allMatches.filter(m => getReviewStatus(m.matchId) === 'unsure').length;
+  const reviewed = verified + excluded + unsure;
+  const pct = total > 0 ? Math.round((reviewed / total) * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('ps-verified').textContent = verified + ' verified';
+  document.getElementById('ps-excluded').textContent = excluded + ' excluded';
+  document.getElementById('ps-unsure').textContent = unsure + ' unsure';
+  document.getElementById('ps-unreviewed').textContent = (total - reviewed) + ' unreviewed';
+}
+
+function updateCounts() {
+  const stateMatches = filters.state === 'ALL' ? allMatches : allMatches.filter(m => m.state === filters.state);
+  document.getElementById('count-all').textContent = stateMatches.length.toLocaleString();
+  document.getElementById('count-high').textContent = stateMatches.filter(m => m.tier === 'HIGH').length.toLocaleString();
+  document.getElementById('count-med').textContent = stateMatches.filter(m => m.tier === 'MEDIUM').length.toLocaleString();
+  document.getElementById('count-unreviewed').textContent = stateMatches.filter(m => getReviewStatus(m.matchId) === 'unreviewed').length.toLocaleString();
+  document.getElementById('count-verified').textContent = stateMatches.filter(m => getReviewStatus(m.matchId) === 'verified').length.toLocaleString();
+  document.getElementById('count-excluded').textContent = stateMatches.filter(m => getReviewStatus(m.matchId) === 'excluded').length.toLocaleString();
+  document.getElementById('count-unsure').textContent = stateMatches.filter(m => getReviewStatus(m.matchId) === 'unsure').length.toLocaleString();
+  const filtered = getFiltered();
+  document.getElementById('resultCount').textContent = filtered.length.toLocaleString() + ' shown';
+  document.getElementById('contentTitle').textContent = filters.state === 'ALL' ? 'All States' : 'State: ' + filters.state;
+}
+
+function updateStateButtons() {
+  ALL_STATES.forEach(s => {
+    const btn = document.getElementById('state-' + s);
+    if (!btn) return;
+    btn.style.opacity = loadedStates.has(s) ? '1' : '0.3';
+    if (stateHighCounts[s] > 0) btn.classList.add('has-high');
+  });
+}
+
+function animateNum(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = parseInt(el.textContent.replace(/,/g, '')) || 0;
+  const dur = 500;
+  const t0 = performance.now();
+  function upd(now) {
+    const t = Math.min((now - t0) / dur, 1);
+    el.textContent = Math.round(start + (target - start) * t).toLocaleString();
+    if (t < 1) requestAnimationFrame(upd);
+  }
+  requestAnimationFrame(upd);
+}
+
+function renderCards() {
+  const container = document.getElementById('cardsContainer');
+  const empty = document.getElementById('emptyState');
+  const filtered = getFiltered();
+  if (!filtered.length) { container.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  const toShow = filtered.slice(0, 150);
+  container.innerHTML = toShow.map(m => buildCard(m)).join('');
+}
+
+function buildCard(m) {
+  const status = getReviewStatus(m.matchId);
+  const review = reviews[m.matchId] || {};
+  const tc = m.tier.toLowerCase();
+  const forItems = m.forItems.map(r => '<li>' + escHtml(r) + '</li>').join('');
+  const againstItems = m.againstItems.map(r => '<li>' + escHtml(r) + '</li>').join('');
+  const statusBadge = status !== 'unreviewed' ? '<span class="status-badge ' + status + '">' + status.replace('unsure','unsure') + '</span>' : '';
+  const statusClass = status !== 'unreviewed' ? ' status-' + status : '';
+  const mpMeta = m.mpMeta.map(t => '<div class="case-meta">' + escHtml(t) + '</div>').join('');
+  const upMeta = m.upMeta.map(t => '<div class="case-meta">' + escHtml(t) + '</div>').join('');
+  const reviewerInfo = review.reviewer ? '<div style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace;margin-top:6px;">Reviewed by: ' + escHtml(review.reviewer) + (review.notes ? ' — ' + escHtml(review.notes) : '') + '</div>' : '';
+
+  return '<div class="card ' + tc + statusClass + '" id="card-' + m.matchId + '">' +
+    '<div class="card-header">' +
+      '<div class="card-header-left">' +
+        '<span class="tier-badge ' + tc + '">' + m.tier + '</span>' +
+        statusBadge +
+        '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);">' + m.state + '</span>' +
+      '</div>' +
+      '<div class="card-header-right">' +
+        '<div class="score-box">' + m.score + '<span>/100</span></div>' +
+        '<button class="review-btn" onclick="toggleReview(\'' + m.matchId + '\')">Review</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card-body">' +
+      '<div class="case-col">' +
+        '<div class="case-type">Missing Person</div>' +
+        '<div class="case-name">' + escHtml(m.mpName || 'Unknown') + '</div>' +
+        mpMeta +
+        (m.mpLink ? '<a href="' + m.mpLink + '" target="_blank" class="case-link">View NamUs Case &rarr;</a>' : '') +
+      '</div>' +
+      '<div class="divider">&#8596;</div>' +
+      '<div class="case-col">' +
+        '<div class="case-type">Unidentified Remains</div>' +
+        '<div class="case-name">' + escHtml(m.upName || 'Unknown') + '</div>' +
+        upMeta +
+        (m.upLink ? '<a href="' + m.upLink + '" target="_blank" class="case-link">View NamUs Case &rarr;</a>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="evidence">' +
+      '<div class="evidence-col"><div class="evidence-title for">Why It Flagged</div><ul>' + forItems + '</ul></div>' +
+      '<div class="evidence-col"><div class="evidence-title against">Reasons to Doubt</div><ul>' + againstItems + '</ul></div>' +
+    '</div>' +
+    buildReviewPanel(m, status, review) +
+    reviewerInfo +
+  '</div>';
+}
+
+function buildReviewPanel(m, status, review) {
+  const isOpen = false;
+  return '<div class="review-panel" id="review-' + m.matchId + '">' +
+    '<div class="review-panel-title">Review This Match</div>' +
+    '<div class="review-options">' +
+      '<div class="review-option verified ' + (status === 'verified' ? 'selected-verified' : '') + '" onclick="selectStatus(\'' + m.matchId + '\',\'verified\')">' +
+        '<div class="review-option-icon">&#10003;</div>' +
+        '<div class="review-option-label">Verified</div>' +
+        '<div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:DM Mono,monospace;">Looks like a match</div>' +
+      '</div>' +
+      '<div class="review-option excluded ' + (status === 'excluded' ? 'selected-excluded' : '') + '" onclick="selectStatus(\'' + m.matchId + '\',\'excluded\')">' +
+        '<div class="review-option-icon">&#10005;</div>' +
+        '<div class="review-option-label">Excluded</div>' +
+        '<div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:DM Mono,monospace;">Not a match</div>' +
+      '</div>' +
+      '<div class="review-option unsure ' + (status === 'unsure' ? 'selected-unsure' : '') + '" onclick="selectStatus(\'' + m.matchId + '\',\'unsure\')">' +
+        '<div class="review-option-icon">?</div>' +
+        '<div class="review-option-label">Unsure</div>' +
+        '<div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:DM Mono,monospace;">Not sure yet</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="review-form" id="form-' + m.matchId + '">' +
+      '<div class="form-row">' +
+        '<div class="form-group"><label>Your Name</label><input class="form-input" id="name-' + m.matchId + '" placeholder="Reviewer name" value="' + escHtml(review.reviewer || '') + '"></div>' +
+        '<div class="form-group"><label>Your Email</label><input class="form-input" id="email-' + m.matchId + '" placeholder="your@email.com" type="email" value="' + escHtml(review.email || '') + '"></div>' +
+      '</div>' +
+      '<div class="form-group" style="margin-bottom:10px;">' +
+        '<label>Notes</label>' +
+        '<textarea class="form-textarea" id="notes-' + m.matchId + '" placeholder="Why does this match / not match? Any additional observations...">' + escHtml(review.notes || '') + '</textarea>' +
+      '</div>' +
+      '<div class="review-actions">' +
+        '<button class="save-review-btn" onclick="saveReview(\'' + m.matchId + '\')">Save Review</button>' +
+        '<a class="submit-namus-btn" id="namus-link-' + m.matchId + '" href="#" onclick="submitToNamus(\'' + m.matchId + '\'); return false;">&#9993; Submit to NamUs Case Officer</a>' +
+        '<button class="cancel-btn" onclick="cancelReview(\'' + m.matchId + '\')">Cancel</button>' +
+        '<button class="cancel-btn" style="color:var(--excluded);margin-left:auto;" onclick="clearReview(\'' + m.matchId + '\')">Clear Review</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+// Store pending (unsaved) status selections per match
+let pendingStatus = {};
+
+function toggleReview(matchId) {
+  const panel = document.getElementById('review-' + matchId);
+  if (!panel) return;
+  const isOpening = !panel.classList.contains('open');
+  if (isOpening) {
+    // Store current saved state before opening
+    pendingStatus[matchId] = reviews[matchId] ? reviews[matchId].status : 'unreviewed';
+  }
+  panel.classList.toggle('open');
+}
+
+function selectStatus(matchId, status) {
+  const panel = document.getElementById('review-' + matchId);
+  if (!panel) return;
+  panel.querySelectorAll('.review-option').forEach(o => {
+    o.className = o.className.replace(/selected-\w+/g, '').trim();
+  });
+  const opts = panel.querySelectorAll('.review-option');
+  const statusMap = ['verified','excluded','unsure'];
+  const idx = statusMap.indexOf(status);
+  if (opts[idx]) opts[idx].classList.add('selected-' + status);
+  const form = document.getElementById('form-' + matchId);
+  if (form) form.classList.add('show');
+  // Store as pending only — do NOT save yet
+  pendingStatus[matchId] = status;
+}
+
+function cancelReview(matchId) {
+  // Restore the previously saved state visually
+  const panel = document.getElementById('review-' + matchId);
+  if (!panel) return;
+  const savedStatus = reviews[matchId] ? reviews[matchId].status : 'unreviewed';
+  panel.querySelectorAll('.review-option').forEach(o => {
+    o.className = o.className.replace(/selected-\w+/g, '').trim();
+  });
+  if (savedStatus !== 'unreviewed') {
+    const opts = panel.querySelectorAll('.review-option');
+    const statusMap = ['verified','excluded','unsure'];
+    const idx = statusMap.indexOf(savedStatus);
+    if (opts[idx]) opts[idx].classList.add('selected-' + savedStatus);
+  }
+  const form = document.getElementById('form-' + matchId);
+  if (form) form.classList.remove('show');
+  panel.classList.remove('open');
+  delete pendingStatus[matchId];
+}
+
+function clearReview(matchId) {
+  if (!confirm('Clear this review? This cannot be undone.')) return;
+  delete reviews[matchId];
+  delete pendingStatus[matchId];
+  saveReviews();
+  const panel = document.getElementById('review-' + matchId);
+  if (panel) panel.classList.remove('open');
+  updateAll();
+  renderCards();
+}
+
+function saveReview(matchId) {
+  const name = document.getElementById('name-' + matchId);
+  const email = document.getElementById('email-' + matchId);
+  const notes = document.getElementById('notes-' + matchId);
+  const status = pendingStatus[matchId] || (reviews[matchId] ? reviews[matchId].status : 'unreviewed');
+  if (status === 'unreviewed') { alert('Please select Verified, Excluded, or Unsure first.'); return; }
+  if (!reviews[matchId]) reviews[matchId] = {};
+  reviews[matchId].status = status;
+  reviews[matchId].reviewer = name ? name.value : '';
+  reviews[matchId].email = email ? email.value : '';
+  reviews[matchId].notes = notes ? notes.value : '';
+  reviews[matchId].timestamp = new Date().toISOString();
+  delete pendingStatus[matchId];
+  saveReviews();
+  const panel = document.getElementById('review-' + matchId);
+  if (panel) panel.classList.remove('open');
+  updateAll();
+  renderCards();
+}
+
+function submitToNamus(matchId) {
+  const m = allMatches.find(x => x.matchId === matchId);
+  if (!m) return;
+  const name = (document.getElementById('name-' + matchId) || {}).value || '';
+  const notes = (document.getElementById('notes-' + matchId) || {}).value || '';
+  const subject = 'Potential Match: ' + m.mpName + ' / ' + m.upName;
+  const body = 'Dear NamUs Case Officer,\n\nI would like to submit a potential match for your review.\n\n' +
+    'MISSING PERSON: ' + m.mpName + '\n' +
+    'NamUs Case: ' + m.mpLink + '\n\n' +
+    'UNIDENTIFIED REMAINS: ' + m.upName + '\n' +
+    'NamUs Case: ' + m.upLink + '\n\n' +
+    'MATCH SCORE: ' + m.score + '/100 (' + m.tier + ' confidence)\n\n' +
+    'WHY IT FLAGGED:\n' + m.forItems.map(r => '- ' + r).join('\n') + '\n\n' +
+    'REASONS TO DOUBT:\n' + m.againstItems.map(r => '- ' + r).join('\n') + '\n\n' +
+    (notes ? 'REVIEWER NOTES:\n' + notes + '\n\n' : '') +
+    'Submitted by: ' + (name || 'Anonymous') + '\n\n' +
+    'Please note: This is an algorithmic candidate — not a confirmed identification. Full verification requires review of complete case files.\n\n' +
+    'This match was identified using ClearName, a cross-reference tool built on NamUs public data.';
+  window.location.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  saveReview(matchId);
+}
+
+function exportReviewed() {
+  const reviewed = allMatches.filter(m => getReviewStatus(m.matchId) !== 'unreviewed');
+  if (!reviewed.length) { alert('No reviewed matches to export yet.'); return; }
+  let csv = 'Match ID,State,Tier,Score,Missing Person,UP Case,Status,Reviewer,Email,Notes,Timestamp\n';
+  reviewed.forEach(m => {
+    const r = reviews[m.matchId] || {};
+    csv += [m.matchId, m.state, m.tier, m.score, '"' + m.mpName + '"', '"' + m.upName + '"', r.status || '', '"' + (r.reviewer || '') + '"', r.email || '', '"' + (r.notes || '').replace(/"/g, '""') + '"', r.timestamp || ''].join(',') + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'clearname_reviewed_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+function setFilter(type, value, btn) {
+  filters[type] = value;
+  if (type === 'tier') {
+    document.querySelectorAll('.filter-chip.high, .filter-chip.med, .filter-chip[onclick*="tier,\'ALL\'"]').forEach(b => b.classList.remove('active'));
+  } else {
+    document.querySelectorAll('.filter-chip.verified-filter, .filter-chip.excluded-filter, .filter-chip.unreviewed-filter, .filter-chip.unsure').forEach(b => b.classList.remove('active'));
+  }
+  btn.classList.add('active');
+  renderCards();
+  updateCounts();
+}
+
+// Admin password - change this to whatever you want
+const ADMIN_PASSWORD = 'clearname2026';
+
+function unlockAdmin() {
+  const input = document.getElementById('adminPwInput');
+  if (!input) return;
+  if (input.value === ADMIN_PASSWORD) {
+    document.getElementById('adminLockSection').style.display = 'none';
+    document.getElementById('loadSection').style.display = 'block';
+    input.value = '';
+  } else {
+    input.style.borderColor = 'var(--excluded)';
+    input.placeholder = 'Wrong password';
+    input.value = '';
+    setTimeout(() => { input.style.borderColor = ''; input.placeholder = 'Password...'; }, 1500);
+  }
+}
+
+function lockAdmin() {
+  document.getElementById('loadSection').style.display = 'none';
+  document.getElementById('adminLockSection').style.display = 'block';
+}
+
+function showGuide() {
+  document.getElementById('guideOverlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function hideGuide() {
+  document.getElementById('guideOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') hideGuide();
+});
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  searchQ = this.value.trim();
+  renderCards();
+  updateCounts();
+});
+
+buildStateGrid();
+</script>
+</body>
+</html>
