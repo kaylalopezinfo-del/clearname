@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NamUs Match Report - IA</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f12;--surface:#13161b;--border:#1f2429;--text:#c9d1d9;--muted:#6e7681;--high:#f85149;--high-bg:rgba(248,81,73,0.08);--med:#e3b341;--med-bg:rgba(227,179,65,0.08);--low:#3fb950;--low-bg:rgba(63,185,80,0.08);--accent:#58a6ff;--for:#3fb950;--against:#f85149}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:28px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header-left h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#fff}
+.header-left p{color:var(--muted);font-size:12px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{text-align:center;padding:10px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff;line-height:1}
+.stat-num.high{color:var(--high)}.stat-num.medium{color:var(--med)}.stat-num.low{color:var(--low)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+.controls{padding:16px 40px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls span{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace}
+.filter-btn{padding:6px 14px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.15s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.filter-btn.active.high{background:var(--high);border-color:var(--high)}
+.filter-btn.active.medium{background:var(--med);border-color:var(--med)}
+.filter-btn.active.low{background:var(--low);border-color:var(--low)}
+.main{padding:24px 40px}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:16px;overflow:hidden}
+.card.high{border-left:3px solid var(--high)}.card.medium{border-left:3px solid var(--med)}.card.low{border-left:3px solid var(--low)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.tier-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:3px 10px;border-radius:3px}
+.tier-badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high)}
+.tier-badge.medium{background:var(--med-bg);color:var(--med);border:1px solid var(--med)}
+.tier-badge.low{background:var(--low-bg);color:var(--low);border:1px solid var(--low)}
+.score-box{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff}
+.score-box span{font-size:13px;color:var(--muted)}
+.card-body{display:grid;grid-template-columns:1fr 40px 1fr;padding:20px}
+.case-col{padding:0 16px}
+.case-col:first-child{padding-left:0;border-right:1px solid var(--border)}
+.case-col:last-child{padding-right:0}
+.divider{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+.case-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.case-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.case-meta{color:var(--muted);font-size:12px;margin-bottom:2px}
+.case-link{display:inline-block;margin-top:10px;color:var(--accent);text-decoration:none;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.case-link:hover{opacity:0.75;text-decoration:underline}
+.evidence{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)}
+.evidence-col{padding:14px 20px}
+.evidence-col:first-child{border-right:1px solid var(--border)}
+.evidence-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.evidence-title.for{color:var(--for)}.evidence-title.against{color:var(--against)}
+.evidence-col ul{list-style:none;padding:0}
+.evidence-col ul li{font-size:12px;color:var(--muted);padding:2px 0 2px 14px;position:relative;line-height:1.5}
+.evidence-col:first-child ul li::before{content:"+";position:absolute;left:0;color:var(--for);font-weight:600}
+.evidence-col:last-child ul li::before{content:"!";position:absolute;left:0;color:var(--against);font-weight:600}
+#result-count{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-left:auto}
+</style></head><body>
+<header>
+  <div class="header-left"><h1>NamUs // Match Report</h1>
+  <p>Generated April 14, 2026 at 08:43 &bull; State: IA &bull; Showing top 62 of 62 candidates</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">62</div><div class="stat-label">Shown</div></div>
+    <div class="stat"><div class="stat-num high">0</div><div class="stat-label">High</div></div>
+    <div class="stat"><div class="stat-num medium">62</div><div class="stat-label">Medium</div></div>
+    <div class="stat"><div class="stat-num low">0</div><div class="stat-label">Low</div></div>
+  </div>
+</header>
+<div class="controls">
+  <span>FILTER:</span>
+  <button class="filter-btn active" onclick="filterCards('ALL',this)">All</button>
+  <button class="filter-btn high" onclick="filterCards('HIGH',this)">High</button>
+  <button class="filter-btn medium" onclick="filterCards('MEDIUM',this)">Medium</button>
+  <button class="filter-btn low" onclick="filterCards('LOW',this)">Low</button>
+  <div id="result-count"></div>
+</div>
+<div class="main"><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">69<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jill Crippes</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 47</div>
+              <div class="case-meta">Last seen 07/17/2023</div>
+              <div class="case-meta">Johnson, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/130598?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP130738</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 50-70</div>
+              <div class="case-meta">Found 08/22/2024</div>
+              <div class="case-meta">Story, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/130738?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:47 / UP:50-70)</li><li>Same state (IA)</li><li>Body found 402 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (402 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Kenneth Harker</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 34</div>
+              <div class="case-meta">Last seen 01/05/1996</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/4491?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:34 / UP:30-60)</li><li>Same state (IA)</li><li>Same county (Woodbury)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2684 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Barbara Elms</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 50</div>
+              <div class="case-meta">Last seen 08/25/1993</div>
+              <div class="case-meta">Linn, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17054?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP130738</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 50-70</div>
+              <div class="case-meta">Found 08/22/2024</div>
+              <div class="case-meta">Story, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/130738?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:50 / UP:50-70)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (11320 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Bernadene Sealine</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 67</div>
+              <div class="case-meta">Last seen 07/10/1993</div>
+              <div class="case-meta">Pottawattamie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/20039?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP130738</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 50-70</div>
+              <div class="case-meta">Found 08/22/2024</div>
+              <div class="case-meta">Story, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/130738?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:67 / UP:50-70)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (11366 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Dawn Allen</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 50</div>
+              <div class="case-meta">Last seen 05/04/2011</div>
+              <div class="case-meta">Carroll, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/10760?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP130738</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 50-70</div>
+              <div class="case-meta">Found 08/22/2024</div>
+              <div class="case-meta">Story, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/130738?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:50 / UP:50-70)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (4859 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Susan Pacha</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 51</div>
+              <div class="case-meta">Last seen 04/30/2018</div>
+              <div class="case-meta">Washington, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/58284?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP130738</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 50-70</div>
+              <div class="case-meta">Found 08/22/2024</div>
+              <div class="case-meta">Story, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/130738?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:51 / UP:50-70)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2306 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gail Ortiz</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 48</div>
+              <div class="case-meta">Last seen 03/01/2015</div>
+              <div class="case-meta">Des Moines, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/134209?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP130738</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 50-70</div>
+              <div class="case-meta">Found 08/22/2024</div>
+              <div class="case-meta">Story, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/130738?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:48 / UP:50-70)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (3462 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Kevin Griebel</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 02/26/2004</div>
+              <div class="case-meta">Jackson, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/399?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5658 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Kevin Griebel</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 02/26/2004</div>
+              <div class="case-meta">Jackson, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/399?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6541 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Colin Meana</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 46</div>
+              <div class="case-meta">Last seen 01/15/2004</div>
+              <div class="case-meta">Clayton, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/135069?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:46 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5616 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Colin Meana</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 46</div>
+              <div class="case-meta">Last seen 01/15/2004</div>
+              <div class="case-meta">Clayton, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/135069?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:46 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6505 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Christopher Stewart</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 08/15/2003</div>
+              <div class="case-meta">Polk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/404?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5463 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Christopher Stewart</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 08/15/2003</div>
+              <div class="case-meta">Polk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/404?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6346 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Dennis Addlesberger</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 46</div>
+              <div class="case-meta">Last seen 03/16/1999</div>
+              <div class="case-meta">Pottawattamie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17038?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:46 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3850 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Dennis Addlesberger</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 46</div>
+              <div class="case-meta">Last seen 03/16/1999</div>
+              <div class="case-meta">Pottawattamie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17038?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:46 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4739 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Dennison Stookesberry</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 56</div>
+              <div class="case-meta">Last seen 02/08/1999</div>
+              <div class="case-meta">Wapello, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/32590?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:56 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3814 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Kenneth Harker</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 34</div>
+              <div class="case-meta">Last seen 01/05/1996</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/4491?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:34 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3567 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Forsyth</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 01/13/1994</div>
+              <div class="case-meta">Black Hawk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17087?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1962 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Forsyth</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 01/13/1994</div>
+              <div class="case-meta">Black Hawk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17087?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2845 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Forsyth</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 01/13/1994</div>
+              <div class="case-meta">Black Hawk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17087?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2851 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Paul Knockel</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 53</div>
+              <div class="case-meta">Last seen 11/26/1990</div>
+              <div class="case-meta">Dubuque, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17057?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:53 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 818 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Mervin Walvatne</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 53</div>
+              <div class="case-meta">Last seen 07/18/1990</div>
+              <div class="case-meta">Clay, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/27995?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:53 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 687 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Sidney Johnston</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 47</div>
+              <div class="case-meta">Last seen 02/06/1990</div>
+              <div class="case-meta">Scott, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/100555?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:47 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 525 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Sidney Johnston</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 47</div>
+              <div class="case-meta">Last seen 02/06/1990</div>
+              <div class="case-meta">Scott, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/100555?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:47 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1414 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">James Booher</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 51</div>
+              <div class="case-meta">Last seen 05/31/2014</div>
+              <div class="case-meta">Linn, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/27721?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:51 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9405 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">James Booher</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 51</div>
+              <div class="case-meta">Last seen 05/31/2014</div>
+              <div class="case-meta">Linn, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/27721?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:51 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 10294 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joseph Riche</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 10/12/2012</div>
+              <div class="case-meta">Pottawattamie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/78328?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8809 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joseph Riche</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 10/12/2012</div>
+              <div class="case-meta">Pottawattamie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/78328?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9692 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joseph Riche</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 10/12/2012</div>
+              <div class="case-meta">Pottawattamie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/78328?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9698 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Steven Babka</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 58</div>
+              <div class="case-meta">Last seen 05/25/2012</div>
+              <div class="case-meta">Iowa, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/18206?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:58 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8669 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">John Hefty</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 54</div>
+              <div class="case-meta">Last seen 10/04/2010</div>
+              <div class="case-meta">Webster, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17095?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:54 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8070 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Delaney</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 49</div>
+              <div class="case-meta">Last seen 07/03/2008</div>
+              <div class="case-meta">Scott, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17029?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:49 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7247 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Delaney</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 49</div>
+              <div class="case-meta">Last seen 07/03/2008</div>
+              <div class="case-meta">Scott, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17029?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:49 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8136 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gustavo Cruz</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 04/01/2008</div>
+              <div class="case-meta">Polk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17028?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7154 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gustavo Cruz</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 04/01/2008</div>
+              <div class="case-meta">Polk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17028?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8037 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Roberto Guerra</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 10/16/2007</div>
+              <div class="case-meta">Webster, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17090?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6986 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Roberto Guerra</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 10/16/2007</div>
+              <div class="case-meta">Webster, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17090?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7875 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Linn Snyder</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 09/03/2006</div>
+              <div class="case-meta">Pottawattamie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/28056?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6578 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Linn Snyder</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 09/03/2006</div>
+              <div class="case-meta">Pottawattamie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/28056?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7467 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gregory Howell</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 01/01/2005</div>
+              <div class="case-meta">Webster, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17033?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5968 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gregory Howell</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 01/01/2005</div>
+              <div class="case-meta">Webster, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17033?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6857 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joseph Gries</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 52</div>
+              <div class="case-meta">Last seen 05/22/2020</div>
+              <div class="case-meta">Emmet, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/79416?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:52 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11588 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Christian Balke-Thompson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 05/03/2020</div>
+              <div class="case-meta">Calhoun, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/86093?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11569 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Christian Balke-Thompson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 05/03/2020</div>
+              <div class="case-meta">Calhoun, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/86093?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12452 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Matthew Holett</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 12/04/2019</div>
+              <div class="case-meta">Polk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/115809?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11418 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Matthew Holett</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 12/04/2019</div>
+              <div class="case-meta">Polk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/115809?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12301 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Kenneth Teubel</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 54</div>
+              <div class="case-meta">Last seen 09/09/2019</div>
+              <div class="case-meta">Wapello, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/130349?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:54 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11332 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jeffrey Bloomer</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 55</div>
+              <div class="case-meta">Last seen 03/15/2019</div>
+              <div class="case-meta">Des Moines, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/102786?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:55 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11154 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Shiffer</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 45</div>
+              <div class="case-meta">Last seen 03/10/2019</div>
+              <div class="case-meta">Polk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/131380?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:45 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11149 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Shiffer</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 45</div>
+              <div class="case-meta">Last seen 03/10/2019</div>
+              <div class="case-meta">Polk, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/131380?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2621</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 03/25/1986</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2621?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:45 / UP:40-50)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12038 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Blaine Evans</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 52</div>
+              <div class="case-meta">Last seen 07/13/2018</div>
+              <div class="case-meta">Johnson, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/59041?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:52 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 10909 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jonathan Lytle</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 27</div>
+              <div class="case-meta">Last seen 04/21/2017</div>
+              <div class="case-meta">Guthrie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/39480?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:27 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 10461 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jonathan Lytle</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 27</div>
+              <div class="case-meta">Last seen 04/21/2017</div>
+              <div class="case-meta">Guthrie, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/39480?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:27 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11344 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joshua Wellman</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 35</div>
+              <div class="case-meta">Last seen 11/11/2015</div>
+              <div class="case-meta">Linn, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/55642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:35 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9934 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joshua Wellman</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 35</div>
+              <div class="case-meta">Last seen 11/11/2015</div>
+              <div class="case-meta">Linn, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/55642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:35 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 10817 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Steven Leasure</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 52</div>
+              <div class="case-meta">Last seen 05/02/2015</div>
+              <div class="case-meta">Des Moines, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/29265?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:52 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9741 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jesse George</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 06/29/2023</div>
+              <div class="case-meta">Harrison, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/110666?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12721 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jesse George</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 06/29/2023</div>
+              <div class="case-meta">Harrison, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/110666?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 13604 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Christopher Golliher</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 35</div>
+              <div class="case-meta">Last seen 02/02/2022</div>
+              <div class="case-meta">Lee, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/89622?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:35 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12209 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Christopher Golliher</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 35</div>
+              <div class="case-meta">Last seen 02/02/2022</div>
+              <div class="case-meta">Lee, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/89622?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:35 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 13092 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Andrew Hoffman</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 07/27/2021</div>
+              <div class="case-meta">Appanoose, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/154083?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2619</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-60</div>
+              <div class="case-meta">Found 08/30/1988</div>
+              <div class="case-meta">Woodbury, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2619?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-60)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12019 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Andrew Hoffman</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 07/27/2021</div>
+              <div class="case-meta">Appanoose, IA</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/154083?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2620</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 03/31/1986</div>
+              <div class="case-meta">Winneshiek, IA</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2620?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:30-40)</li><li>Same state (IA)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12902 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div></div>
+<script>
+function filterCards(tier,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let v=0;
+  document.querySelectorAll('.card').forEach(c=>{
+    const show=tier==='ALL'||c.dataset.tier===tier;
+    c.style.display=show?'block':'none';
+    if(show)v++;
+  });
+  document.getElementById('result-count').textContent=v+' shown';
+}
+document.getElementById('result-count').textContent=document.querySelectorAll('.card').length+' shown';
+</script>
+</body></html>

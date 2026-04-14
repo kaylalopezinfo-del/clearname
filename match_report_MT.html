@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NamUs Match Report - MT</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f12;--surface:#13161b;--border:#1f2429;--text:#c9d1d9;--muted:#6e7681;--high:#f85149;--high-bg:rgba(248,81,73,0.08);--med:#e3b341;--med-bg:rgba(227,179,65,0.08);--low:#3fb950;--low-bg:rgba(63,185,80,0.08);--accent:#58a6ff;--for:#3fb950;--against:#f85149}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:28px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header-left h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#fff}
+.header-left p{color:var(--muted);font-size:12px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{text-align:center;padding:10px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff;line-height:1}
+.stat-num.high{color:var(--high)}.stat-num.medium{color:var(--med)}.stat-num.low{color:var(--low)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+.controls{padding:16px 40px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls span{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace}
+.filter-btn{padding:6px 14px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.15s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.filter-btn.active.high{background:var(--high);border-color:var(--high)}
+.filter-btn.active.medium{background:var(--med);border-color:var(--med)}
+.filter-btn.active.low{background:var(--low);border-color:var(--low)}
+.main{padding:24px 40px}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:16px;overflow:hidden}
+.card.high{border-left:3px solid var(--high)}.card.medium{border-left:3px solid var(--med)}.card.low{border-left:3px solid var(--low)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.tier-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:3px 10px;border-radius:3px}
+.tier-badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high)}
+.tier-badge.medium{background:var(--med-bg);color:var(--med);border:1px solid var(--med)}
+.tier-badge.low{background:var(--low-bg);color:var(--low);border:1px solid var(--low)}
+.score-box{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff}
+.score-box span{font-size:13px;color:var(--muted)}
+.card-body{display:grid;grid-template-columns:1fr 40px 1fr;padding:20px}
+.case-col{padding:0 16px}
+.case-col:first-child{padding-left:0;border-right:1px solid var(--border)}
+.case-col:last-child{padding-right:0}
+.divider{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+.case-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.case-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.case-meta{color:var(--muted);font-size:12px;margin-bottom:2px}
+.case-link{display:inline-block;margin-top:10px;color:var(--accent);text-decoration:none;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.case-link:hover{opacity:0.75;text-decoration:underline}
+.evidence{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)}
+.evidence-col{padding:14px 20px}
+.evidence-col:first-child{border-right:1px solid var(--border)}
+.evidence-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.evidence-title.for{color:var(--for)}.evidence-title.against{color:var(--against)}
+.evidence-col ul{list-style:none;padding:0}
+.evidence-col ul li{font-size:12px;color:var(--muted);padding:2px 0 2px 14px;position:relative;line-height:1.5}
+.evidence-col:first-child ul li::before{content:"+";position:absolute;left:0;color:var(--for);font-weight:600}
+.evidence-col:last-child ul li::before{content:"!";position:absolute;left:0;color:var(--against);font-weight:600}
+#result-count{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-left:auto}
+</style></head><body>
+<header>
+  <div class="header-left"><h1>NamUs // Match Report</h1>
+  <p>Generated April 14, 2026 at 08:43 &bull; State: MT &bull; Showing top 40 of 40 candidates</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">40</div><div class="stat-label">Shown</div></div>
+    <div class="stat"><div class="stat-num high">0</div><div class="stat-label">High</div></div>
+    <div class="stat"><div class="stat-num medium">40</div><div class="stat-label">Medium</div></div>
+    <div class="stat"><div class="stat-num low">0</div><div class="stat-label">Low</div></div>
+  </div>
+</header>
+<div class="controls">
+  <span>FILTER:</span>
+  <button class="filter-btn active" onclick="filterCards('ALL',this)">All</button>
+  <button class="filter-btn high" onclick="filterCards('HIGH',this)">High</button>
+  <button class="filter-btn medium" onclick="filterCards('MEDIUM',this)">Medium</button>
+  <button class="filter-btn low" onclick="filterCards('LOW',this)">Low</button>
+  <div id="result-count"></div>
+</div>
+<div class="main"><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Leroy Owen</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 57</div>
+              <div class="case-meta">Last seen 08/20/2016</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/61239?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:57 / UP:35-60)</li><li>Same state (MT)</li><li>Same county (Ravalli)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3389 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jay Benjamin</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 12/11/2002</div>
+              <div class="case-meta">Yellowstone, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23237?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (1612 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Nicholas Welchlin</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 37</div>
+              <div class="case-meta">Last seen 09/06/2002</div>
+              <div class="case-meta">Granite, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23747?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:37 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (1708 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Patrick Whalen</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 11/20/2000</div>
+              <div class="case-meta">Glacier, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/255?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2363 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Harold Forsyth</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 11/07/2000</div>
+              <div class="case-meta">Lincoln, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/18931?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2376 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Scott Gilchrist</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 35</div>
+              <div class="case-meta">Last seen 10/22/1999</div>
+              <div class="case-meta">Missoula, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/14936?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:35 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2758 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Daniel Campbell</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 04/06/1991</div>
+              <div class="case-meta">Sweet Grass, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/29460?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (5879 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jay Benjamin</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 12/11/2002</div>
+              <div class="case-meta">Yellowstone, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23237?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6256 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Nicholas Welchlin</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 37</div>
+              <div class="case-meta">Last seen 09/06/2002</div>
+              <div class="case-meta">Granite, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23747?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:37 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6160 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Patrick Whalen</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 11/20/2000</div>
+              <div class="case-meta">Glacier, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/255?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5505 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Harold Forsyth</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 11/07/2000</div>
+              <div class="case-meta">Lincoln, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/18931?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5492 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Scott Gilchrist</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 35</div>
+              <div class="case-meta">Last seen 10/22/1999</div>
+              <div class="case-meta">Missoula, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/14936?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:35 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5110 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Tony Aguilar</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Age 31</div>
+              <div class="case-meta">Last seen 10/30/1995</div>
+              <div class="case-meta">Sanders, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23708?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian, Hispanic / Latino / White / Caucasian)</li><li>Age strong match (MP:31 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 3657 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gordon Northbourg</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 01/01/1995</div>
+              <div class="case-meta">Lewis And Clark, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23703?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3355 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Craig Christensen</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 30</div>
+              <div class="case-meta">Last seen 11/06/1994</div>
+              <div class="case-meta">Yellowstone, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23235?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:30 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3299 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Daniel Campbell</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 04/06/1991</div>
+              <div class="case-meta">Sweet Grass, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/29460?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1989 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Dietmar Munhofen</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 58</div>
+              <div class="case-meta">Last seen 06/06/2013</div>
+              <div class="case-meta">Fergus, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23781?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:58 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2218 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Daniel Thomas</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 29</div>
+              <div class="case-meta">Last seen 12/18/2012</div>
+              <div class="case-meta">Silver Bow, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/18920?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:29 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9916 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Drake</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 32</div>
+              <div class="case-meta">Last seen 06/29/2012</div>
+              <div class="case-meta">Big Horn, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23767?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:32 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1876 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Drake</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 32</div>
+              <div class="case-meta">Last seen 06/29/2012</div>
+              <div class="case-meta">Big Horn, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23767?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:32 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9744 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Duncan</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 37</div>
+              <div class="case-meta">Last seen 05/27/2012</div>
+              <div class="case-meta">Deer Lodge, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/19040?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:37 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1843 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Duncan</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 37</div>
+              <div class="case-meta">Last seen 05/27/2012</div>
+              <div class="case-meta">Deer Lodge, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/19040?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:37 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9711 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Robin Smith</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 03/14/2009</div>
+              <div class="case-meta">Stillwater, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23775?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 673 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Robin Smith</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 03/14/2009</div>
+              <div class="case-meta">Stillwater, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23775?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8541 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Benjamin Earls</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 42</div>
+              <div class="case-meta">Last seen 08/02/2020</div>
+              <div class="case-meta">Lincoln, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/76701?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:42 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4832 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Reid</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 61</div>
+              <div class="case-meta">Last seen 07/21/2020</div>
+              <div class="case-meta">Missoula, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/77193?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:61 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4820 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Brandon Brownlee</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 43</div>
+              <div class="case-meta">Last seen 06/15/2018</div>
+              <div class="case-meta">Missoula, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/61246?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:43 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4053 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Paul Batson</div>
+              <div class="case-meta">male &bull; White / Caucasian, Uncertain &bull; Age 45</div>
+              <div class="case-meta">Last seen 04/29/2018</div>
+              <div class="case-meta">Gallatin, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/59988?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian, Uncertain / White / Caucasian)</li><li>Age strong match (MP:45 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 4006 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Calvin Zimdars</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 56</div>
+              <div class="case-meta">Last seen 11/29/2017</div>
+              <div class="case-meta">Beaverhead, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/42646?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:56 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3855 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Kelly</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 58</div>
+              <div class="case-meta">Last seen 08/23/2017</div>
+              <div class="case-meta">Cascade, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/91432?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:58 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3757 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Anthony Ham</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 50</div>
+              <div class="case-meta">Last seen 09/27/2016</div>
+              <div class="case-meta">Stillwater, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/61241?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:50 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3427 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Robert Willenborg</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 59</div>
+              <div class="case-meta">Last seen 06/12/2016</div>
+              <div class="case-meta">Valley, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/61237?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:59 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3320 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Stanford King</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 04/14/2016</div>
+              <div class="case-meta">Silver Bow, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/52872?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3261 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Stanford King</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 04/14/2016</div>
+              <div class="case-meta">Silver Bow, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/52872?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11129 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">David Hepfer</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 27</div>
+              <div class="case-meta">Last seen 09/09/2025</div>
+              <div class="case-meta">Lincoln, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/151207?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:27 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 14564 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">David Leeper</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 46</div>
+              <div class="case-meta">Last seen 05/31/2025</div>
+              <div class="case-meta">Missoula, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/150723?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:46 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6595 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Erick McConnon</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 54</div>
+              <div class="case-meta">Last seen 01/01/2022</div>
+              <div class="case-meta">Gallatin, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/149622?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:54 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5349 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Timothy Elston</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 11/05/2021</div>
+              <div class="case-meta">Flathead, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/87845?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5292 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Timothy Elston</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 11/05/2021</div>
+              <div class="case-meta">Flathead, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/87845?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12195</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 30-40</div>
+              <div class="case-meta">Found 10/25/1985</div>
+              <div class="case-meta">Hill, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12195?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:30-40)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 13160 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Daniel Baker</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 06/10/2021</div>
+              <div class="case-meta">Missoula, MT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/86609?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP7458</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 35-60</div>
+              <div class="case-meta">Found 05/11/2007</div>
+              <div class="case-meta">Ravalli, MT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/7458?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:35-60)</li><li>Same state (MT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5144 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div></div>
+<script>
+function filterCards(tier,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let v=0;
+  document.querySelectorAll('.card').forEach(c=>{
+    const show=tier==='ALL'||c.dataset.tier===tier;
+    c.style.display=show?'block':'none';
+    if(show)v++;
+  });
+  document.getElementById('result-count').textContent=v+' shown';
+}
+document.getElementById('result-count').textContent=document.querySelectorAll('.card').length+' shown';
+</script>
+</body></html>

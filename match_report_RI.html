@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NamUs Match Report - RI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f12;--surface:#13161b;--border:#1f2429;--text:#c9d1d9;--muted:#6e7681;--high:#f85149;--high-bg:rgba(248,81,73,0.08);--med:#e3b341;--med-bg:rgba(227,179,65,0.08);--low:#3fb950;--low-bg:rgba(63,185,80,0.08);--accent:#58a6ff;--for:#3fb950;--against:#f85149}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:28px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header-left h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#fff}
+.header-left p{color:var(--muted);font-size:12px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{text-align:center;padding:10px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff;line-height:1}
+.stat-num.high{color:var(--high)}.stat-num.medium{color:var(--med)}.stat-num.low{color:var(--low)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+.controls{padding:16px 40px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls span{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace}
+.filter-btn{padding:6px 14px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.15s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.filter-btn.active.high{background:var(--high);border-color:var(--high)}
+.filter-btn.active.medium{background:var(--med);border-color:var(--med)}
+.filter-btn.active.low{background:var(--low);border-color:var(--low)}
+.main{padding:24px 40px}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:16px;overflow:hidden}
+.card.high{border-left:3px solid var(--high)}.card.medium{border-left:3px solid var(--med)}.card.low{border-left:3px solid var(--low)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.tier-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:3px 10px;border-radius:3px}
+.tier-badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high)}
+.tier-badge.medium{background:var(--med-bg);color:var(--med);border:1px solid var(--med)}
+.tier-badge.low{background:var(--low-bg);color:var(--low);border:1px solid var(--low)}
+.score-box{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff}
+.score-box span{font-size:13px;color:var(--muted)}
+.card-body{display:grid;grid-template-columns:1fr 40px 1fr;padding:20px}
+.case-col{padding:0 16px}
+.case-col:first-child{padding-left:0;border-right:1px solid var(--border)}
+.case-col:last-child{padding-right:0}
+.divider{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+.case-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.case-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.case-meta{color:var(--muted);font-size:12px;margin-bottom:2px}
+.case-link{display:inline-block;margin-top:10px;color:var(--accent);text-decoration:none;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.case-link:hover{opacity:0.75;text-decoration:underline}
+.evidence{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)}
+.evidence-col{padding:14px 20px}
+.evidence-col:first-child{border-right:1px solid var(--border)}
+.evidence-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.evidence-title.for{color:var(--for)}.evidence-title.against{color:var(--against)}
+.evidence-col ul{list-style:none;padding:0}
+.evidence-col ul li{font-size:12px;color:var(--muted);padding:2px 0 2px 14px;position:relative;line-height:1.5}
+.evidence-col:first-child ul li::before{content:"+";position:absolute;left:0;color:var(--for);font-weight:600}
+.evidence-col:last-child ul li::before{content:"!";position:absolute;left:0;color:var(--against);font-weight:600}
+#result-count{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-left:auto}
+</style></head><body>
+<header>
+  <div class="header-left"><h1>NamUs // Match Report</h1>
+  <p>Generated April 14, 2026 at 08:43 &bull; State: RI &bull; Showing top 35 of 35 candidates</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">35</div><div class="stat-label">Shown</div></div>
+    <div class="stat"><div class="stat-num high">0</div><div class="stat-label">High</div></div>
+    <div class="stat"><div class="stat-num medium">35</div><div class="stat-label">Medium</div></div>
+    <div class="stat"><div class="stat-num low">0</div><div class="stat-label">Low</div></div>
+  </div>
+</header>
+<div class="controls">
+  <span>FILTER:</span>
+  <button class="filter-btn active" onclick="filterCards('ALL',this)">All</button>
+  <button class="filter-btn high" onclick="filterCards('HIGH',this)">High</button>
+  <button class="filter-btn medium" onclick="filterCards('MEDIUM',this)">Medium</button>
+  <button class="filter-btn low" onclick="filterCards('LOW',this)">Low</button>
+  <div id="result-count"></div>
+</div>
+<div class="main"><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">69<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Katrina McVeigh</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 27</div>
+              <div class="case-meta">Last seen 06/17/1992</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/11629?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12682</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 20-70</div>
+              <div class="case-meta">Found 08/28/1994</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12682?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:27 / UP:20-70)</li><li>Same state (RI)</li><li>Body found 802 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (802 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">69<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Hokanson, Jr.</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 19</div>
+              <div class="case-meta">Last seen 03/25/1990</div>
+              <div class="case-meta">Newport, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/25526?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12707</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 21-26</div>
+              <div class="case-meta">Found 01/11/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12707?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:19 / UP:21-26)</li><li>Same state (RI)</li><li>Body found 657 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (657 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">61<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Hokanson, Jr.</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 19</div>
+              <div class="case-meta">Last seen 03/25/1990</div>
+              <div class="case-meta">Newport, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/25526?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age reasonable match (MP:19 / UP:25-40)</li><li>Same state (RI)</li><li>Body found 761 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (761 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Frank Mazzella</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 39</div>
+              <div class="case-meta">Last seen 02/07/1999</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/99?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:39 / UP:25-40)</li><li>Same state (RI)</li><li>Same county (Washington)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2480 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Charles Alper</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 03/04/2011</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/25434?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:25-40)</li><li>Same state (RI)</li><li>Same county (Washington)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6888 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Wojciech Fudali</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 12/06/2008</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5446?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:25-40)</li><li>Same state (RI)</li><li>Same county (Washington)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6070 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Wojciech Fudali</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 12/06/2008</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5446?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12707</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 21-26</div>
+              <div class="case-meta">Found 01/11/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12707?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:21-26)</li><li>Same state (RI)</li><li>Same county (Washington)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6174 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jon Riccio</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 35</div>
+              <div class="case-meta">Last seen 02/11/2006</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/34216?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:35 / UP:25-40)</li><li>Same state (RI)</li><li>Same county (Washington)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5041 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Sinotte</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 06/13/2019</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/74142?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:25-40)</li><li>Same state (RI)</li><li>Same county (Washington)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9911 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Sinotte</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 06/13/2019</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/74142?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12707</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 21-26</div>
+              <div class="case-meta">Found 01/11/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12707?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:21-26)</li><li>Same state (RI)</li><li>Same county (Washington)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 10015 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">John Ansay</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 01/01/2019</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/124679?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:25-40)</li><li>Same state (RI)</li><li>Same county (Washington)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9748 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Katrina McVeigh</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 27</div>
+              <div class="case-meta">Last seen 06/17/1992</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/11629?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12660</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 05/05/1998</div>
+              <div class="case-meta">Bristol, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12660?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:27 / UP:20-40)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2148 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Doreen Marfeo</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 34</div>
+              <div class="case-meta">Last seen 03/29/1990</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/8644?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12660</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 05/05/1998</div>
+              <div class="case-meta">Bristol, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12660?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:34 / UP:20-40)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2959 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Doreen Marfeo</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 34</div>
+              <div class="case-meta">Last seen 03/29/1990</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/8644?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12682</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 20-70</div>
+              <div class="case-meta">Found 08/28/1994</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12682?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:34 / UP:20-70)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (1613 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Bryan Nisenfeld</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 18</div>
+              <div class="case-meta">Last seen 02/08/1997</div>
+              <div class="case-meta">Bristol, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/39649?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12707</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 21-26</div>
+              <div class="case-meta">Found 01/11/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12707?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:18 / UP:21-26)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1855 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">John Simonelli</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 21</div>
+              <div class="case-meta">Last seen 07/11/1994</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13657?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12707</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 21-26</div>
+              <div class="case-meta">Found 01/11/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12707?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:21 / UP:21-26)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 912 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Adam Emery</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 11/10/1993</div>
+              <div class="case-meta">Kent, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/36667?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:25-40)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 565 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Adam Emery</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 11/10/1993</div>
+              <div class="case-meta">Kent, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/36667?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12497</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 06/18/1987</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12497?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:25-35)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2337 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Charles Alper</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 03/04/2011</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/25434?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12497</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 06/18/1987</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12497?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:25-35)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8660 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Wojciech Fudali</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 12/06/2008</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5446?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12497</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 06/18/1987</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12497?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:25-35)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7842 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jon Riccio</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 35</div>
+              <div class="case-meta">Last seen 02/11/2006</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/34216?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12497</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 06/18/1987</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12497?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:35 / UP:25-35)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6813 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Sinotte</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 06/13/2019</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/74142?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12497</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 06/18/1987</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12497?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:25-35)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11683 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">John Ansay</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 01/01/2019</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/124679?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12497</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 06/18/1987</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12497?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:25-35)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11520 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Maerov</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 06/02/2018</div>
+              <div class="case-meta">Newport, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53305?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:25-40)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9535 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Maerov</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 06/02/2018</div>
+              <div class="case-meta">Newport, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53305?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12707</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 21-26</div>
+              <div class="case-meta">Found 01/11/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12707?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:21-26)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9639 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Maerov</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 06/02/2018</div>
+              <div class="case-meta">Newport, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53305?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12497</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 06/18/1987</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12497?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:25-35)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11307 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Heather Boisvert</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 26</div>
+              <div class="case-meta">Last seen 08/01/2017</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/65376?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12660</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 05/05/1998</div>
+              <div class="case-meta">Bristol, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12660?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:26 / UP:20-40)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7028 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Heather Boisvert</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 26</div>
+              <div class="case-meta">Last seen 08/01/2017</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/65376?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12682</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 20-70</div>
+              <div class="case-meta">Found 08/28/1994</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12682?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:26 / UP:20-70)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8374 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Norman Baxter</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 02/15/2017</div>
+              <div class="case-meta">Kent, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/43395?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:25-40)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9063 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Norman Baxter</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 02/15/2017</div>
+              <div class="case-meta">Kent, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/43395?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12497</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 06/18/1987</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12497?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:25-35)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 10835 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jennifer Warren</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 48</div>
+              <div class="case-meta">Last seen 12/24/2024</div>
+              <div class="case-meta">Newport, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/139284?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12682</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 20-70</div>
+              <div class="case-meta">Found 08/28/1994</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12682?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:48 / UP:20-70)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11076 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Luke Benoit</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 06/28/2022</div>
+              <div class="case-meta">Newport, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/149602?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12642</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-40</div>
+              <div class="case-meta">Found 04/24/1992</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:25-40)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11022 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Luke Benoit</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 06/28/2022</div>
+              <div class="case-meta">Newport, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/149602?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12497</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 06/18/1987</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12497?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:25-35)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12794 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Charlotte Lester</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 05/16/2022</div>
+              <div class="case-meta">Kent, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/91714?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12682</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 20-70</div>
+              <div class="case-meta">Found 08/28/1994</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12682?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:20-70)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 10123 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Robert Rocchio</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 50</div>
+              <div class="case-meta">Last seen 03/06/2021</div>
+              <div class="case-meta">Providence, RI</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/78742?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12636</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 50-99</div>
+              <div class="case-meta">Found 12/22/1988</div>
+              <div class="case-meta">Washington, RI</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12636?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:50 / UP:50-99)</li><li>Same state (RI)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11762 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div></div>
+<script>
+function filterCards(tier,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let v=0;
+  document.querySelectorAll('.card').forEach(c=>{
+    const show=tier==='ALL'||c.dataset.tier===tier;
+    c.style.display=show?'block':'none';
+    if(show)v++;
+  });
+  document.getElementById('result-count').textContent=v+' shown';
+}
+document.getElementById('result-count').textContent=document.querySelectorAll('.card').length+' shown';
+</script>
+</body></html>

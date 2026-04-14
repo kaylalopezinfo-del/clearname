@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NamUs Match Report - ME</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f12;--surface:#13161b;--border:#1f2429;--text:#c9d1d9;--muted:#6e7681;--high:#f85149;--high-bg:rgba(248,81,73,0.08);--med:#e3b341;--med-bg:rgba(227,179,65,0.08);--low:#3fb950;--low-bg:rgba(63,185,80,0.08);--accent:#58a6ff;--for:#3fb950;--against:#f85149}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:28px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header-left h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#fff}
+.header-left p{color:var(--muted);font-size:12px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{text-align:center;padding:10px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff;line-height:1}
+.stat-num.high{color:var(--high)}.stat-num.medium{color:var(--med)}.stat-num.low{color:var(--low)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+.controls{padding:16px 40px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls span{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace}
+.filter-btn{padding:6px 14px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.15s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.filter-btn.active.high{background:var(--high);border-color:var(--high)}
+.filter-btn.active.medium{background:var(--med);border-color:var(--med)}
+.filter-btn.active.low{background:var(--low);border-color:var(--low)}
+.main{padding:24px 40px}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:16px;overflow:hidden}
+.card.high{border-left:3px solid var(--high)}.card.medium{border-left:3px solid var(--med)}.card.low{border-left:3px solid var(--low)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.tier-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:3px 10px;border-radius:3px}
+.tier-badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high)}
+.tier-badge.medium{background:var(--med-bg);color:var(--med);border:1px solid var(--med)}
+.tier-badge.low{background:var(--low-bg);color:var(--low);border:1px solid var(--low)}
+.score-box{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff}
+.score-box span{font-size:13px;color:var(--muted)}
+.card-body{display:grid;grid-template-columns:1fr 40px 1fr;padding:20px}
+.case-col{padding:0 16px}
+.case-col:first-child{padding-left:0;border-right:1px solid var(--border)}
+.case-col:last-child{padding-right:0}
+.divider{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+.case-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.case-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.case-meta{color:var(--muted);font-size:12px;margin-bottom:2px}
+.case-link{display:inline-block;margin-top:10px;color:var(--accent);text-decoration:none;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.case-link:hover{opacity:0.75;text-decoration:underline}
+.evidence{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)}
+.evidence-col{padding:14px 20px}
+.evidence-col:first-child{border-right:1px solid var(--border)}
+.evidence-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.evidence-title.for{color:var(--for)}.evidence-title.against{color:var(--against)}
+.evidence-col ul{list-style:none;padding:0}
+.evidence-col ul li{font-size:12px;color:var(--muted);padding:2px 0 2px 14px;position:relative;line-height:1.5}
+.evidence-col:first-child ul li::before{content:"+";position:absolute;left:0;color:var(--for);font-weight:600}
+.evidence-col:last-child ul li::before{content:"!";position:absolute;left:0;color:var(--against);font-weight:600}
+#result-count{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-left:auto}
+</style></head><body>
+<header>
+  <div class="header-left"><h1>NamUs // Match Report</h1>
+  <p>Generated April 14, 2026 at 08:43 &bull; State: ME &bull; Showing top 60 of 60 candidates</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">60</div><div class="stat-label">Shown</div></div>
+    <div class="stat"><div class="stat-num high">2</div><div class="stat-label">High</div></div>
+    <div class="stat"><div class="stat-num medium">58</div><div class="stat-label">Medium</div></div>
+    <div class="stat"><div class="stat-num low">0</div><div class="stat-label">Low</div></div>
+  </div>
+</header>
+<div class="controls">
+  <span>FILTER:</span>
+  <button class="filter-btn active" onclick="filterCards('ALL',this)">All</button>
+  <button class="filter-btn high" onclick="filterCards('HIGH',this)">High</button>
+  <button class="filter-btn medium" onclick="filterCards('MEDIUM',this)">Medium</button>
+  <button class="filter-btn low" onclick="filterCards('LOW',this)">Low</button>
+  <div id="result-count"></div>
+</div>
+<div class="main"><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">84<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Raymond Hodgkins</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 43</div>
+              <div class="case-meta">Last seen 05/01/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/40568?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:43 / UP:40-50)</li><li>Same state (ME)</li><li>Same county (Hancock)</li><li>Body found within 6 months (100 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">79<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Thomas Jacoby</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 18</div>
+              <div class="case-meta">Last seen 07/01/1991</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53579?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:18 / UP:18-44)</li><li>Same state (ME)</li><li>Body found within 6 months (170 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">74<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Lawrence Robbins</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 02/24/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/60650?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:18-44)</li><li>Same state (ME)</li><li>Same county (Hancock)</li><li>Body found 297 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (297 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">74<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Benjamin Day</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 21</div>
+              <div class="case-meta">Last seen 02/24/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/60700?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:21 / UP:18-44)</li><li>Same state (ME)</li><li>Same county (Hancock)</li><li>Body found 297 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (297 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">74<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Norman Closson, III</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 19</div>
+              <div class="case-meta">Last seen 02/24/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/60647?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:19 / UP:18-44)</li><li>Same state (ME)</li><li>Same county (Hancock)</li><li>Body found 297 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (297 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">74<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Raymond Hodgkins</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 43</div>
+              <div class="case-meta">Last seen 05/01/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/40568?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:43 / UP:18-44)</li><li>Same state (ME)</li><li>Same county (Hancock)</li><li>Body found 596 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (596 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">69<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Shawn Perkins</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 20</div>
+              <div class="case-meta">Last seen 02/11/1991</div>
+              <div class="case-meta">Washington, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/39516?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:20 / UP:18-44)</li><li>Same state (ME)</li><li>Body found 310 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (310 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">69<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Darin Crocker</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 22</div>
+              <div class="case-meta">Last seen 09/06/1990</div>
+              <div class="case-meta">Lincoln, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53326?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:22 / UP:18-44)</li><li>Same state (ME)</li><li>Body found 468 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (468 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Ronald Vallee, Jr.</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 05/13/2004</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53287?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:18-44)</li><li>Same state (ME)</li><li>Same county (Hancock)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4530 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Ronald Haskell</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 11/11/1993</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/56352?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:18-44)</li><li>Same state (ME)</li><li>Same county (Hancock)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 694 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Russell Burnett</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 46</div>
+              <div class="case-meta">Last seen 02/21/2017</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/40077?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:46 / UP:40-50)</li><li>Same state (ME)</li><li>Same county (Hancock)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9693 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jeremy Alex</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 04/24/2004</div>
+              <div class="case-meta">Waldo, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/98?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4511 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">John Hannemann</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 07/21/2003</div>
+              <div class="case-meta">York, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/35409?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4233 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">John Hannemann</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 07/21/2003</div>
+              <div class="case-meta">York, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/35409?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4729 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Steven Oldham</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 48</div>
+              <div class="case-meta">Last seen 12/21/2000</div>
+              <div class="case-meta">Sagadahoc, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/55267?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:48 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3787 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">David Stortz</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 08/29/2000</div>
+              <div class="case-meta">Knox, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53325?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3177 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">David Stortz</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 08/29/2000</div>
+              <div class="case-meta">Knox, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53325?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3673 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jason Power</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 21</div>
+              <div class="case-meta">Last seen 05/27/2000</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53328?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:21 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3083 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Buckman, Jr.</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 19</div>
+              <div class="case-meta">Last seen 05/27/2000</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53359?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:19 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3083 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Angel Torres</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Age 21</div>
+              <div class="case-meta">Last seen 05/21/1999</div>
+              <div class="case-meta">York, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/19762?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian, Hispanic / Latino / White / Caucasian)</li><li>Age strong match (MP:21 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 2711 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Morse, III</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 26</div>
+              <div class="case-meta">Last seen 12/12/1998</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/36958?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:26 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2551 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Harosin</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 11/06/1998</div>
+              <div class="case-meta">Kennebec, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/35166?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2515 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Harosin</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 11/06/1998</div>
+              <div class="case-meta">Kennebec, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/35166?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3011 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Madore</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 32</div>
+              <div class="case-meta">Last seen 04/06/1996</div>
+              <div class="case-meta">Piscataquis, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/51757?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:32 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1571 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Roger Dupuis</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 39</div>
+              <div class="case-meta">Last seen 12/04/1995</div>
+              <div class="case-meta">York, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/36368?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:39 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1447 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Roger Dupuis</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 39</div>
+              <div class="case-meta">Last seen 12/04/1995</div>
+              <div class="case-meta">York, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/36368?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:39 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1943 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Christopher Caramihalis</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 01/14/1994</div>
+              <div class="case-meta">York, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53331?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 758 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Roderick Hotham</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 09/16/1992</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/36861?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:38 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 273 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Roderick Hotham</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 09/16/1992</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/36861?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:38 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 769 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Tyler Sawyer</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 15</div>
+              <div class="case-meta">Last seen 11/01/2014</div>
+              <div class="case-meta">Knox, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/42790?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:15 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8354 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Tomas Hammond</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 27</div>
+              <div class="case-meta">Last seen 11/01/2014</div>
+              <div class="case-meta">Knox, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/42788?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:27 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8354 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Dane Angelich</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 34</div>
+              <div class="case-meta">Last seen 10/07/2013</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/23790?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:34 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7964 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William McIntyre</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 51</div>
+              <div class="case-meta">Last seen 08/22/2013</div>
+              <div class="case-meta">York, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53487?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:51 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8414 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Ryan Blagojevic</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 37</div>
+              <div class="case-meta">Last seen 03/31/2013</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/36736?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:37 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7774 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Ryan Blagojevic</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 37</div>
+              <div class="case-meta">Last seen 03/31/2013</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/36736?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:37 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8270 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jason Reil</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 01/12/2012</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/14075?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7330 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Thomas Clarke</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 32</div>
+              <div class="case-meta">Last seen 09/09/2011</div>
+              <div class="case-meta">Lincoln, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/42903?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:32 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7205 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joseph Jones</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 10/20/2009</div>
+              <div class="case-meta">Washington, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/56348?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6516 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Christopher Whitaker</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 23</div>
+              <div class="case-meta">Last seen 10/27/2008</div>
+              <div class="case-meta">Knox, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/42308?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:23 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6158 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Paul Blanco</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 45</div>
+              <div class="case-meta">Last seen 02/24/2007</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/51807?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:45 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5547 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Paul Blanco</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 45</div>
+              <div class="case-meta">Last seen 02/24/2007</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/51807?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:45 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6043 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Daniel Miller</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 20</div>
+              <div class="case-meta">Last seen 01/30/2007</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/56376?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:20 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5522 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Sean Cone</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 24</div>
+              <div class="case-meta">Last seen 01/30/2007</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/56350?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:24 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5522 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Drouin, Jr.</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 10/27/2006</div>
+              <div class="case-meta">Sagadahoc, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/55198?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:38 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5427 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Drouin, Jr.</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 10/27/2006</div>
+              <div class="case-meta">Sagadahoc, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/55198?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:38 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5923 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gary Thorbjornson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 07/15/2005</div>
+              <div class="case-meta">Knox, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53203?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4958 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gary Thorbjornson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 07/15/2005</div>
+              <div class="case-meta">Knox, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/53203?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5454 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Stephen Wines</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 27</div>
+              <div class="case-meta">Last seen 05/12/2017</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/38622?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:27 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9277 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Colin Arey</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 26</div>
+              <div class="case-meta">Last seen 01/25/2017</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/50839?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:26 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9170 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Derek Partridge</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 47</div>
+              <div class="case-meta">Last seen 11/13/2015</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/32709?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:47 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9227 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Adam Patterson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 30</div>
+              <div class="case-meta">Last seen 11/10/2015</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/42783?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:30 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 8728 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Whitney Bryant</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 39</div>
+              <div class="case-meta">Last seen 02/22/2026</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/156258?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:39 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12485 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Whitney Bryant</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 39</div>
+              <div class="case-meta">Last seen 02/22/2026</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/156258?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:39 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12981 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joshua Creel</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 49</div>
+              <div class="case-meta">Last seen 07/01/2025</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/153989?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:49 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12745 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Aaron Barrett</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 36</div>
+              <div class="case-meta">Last seen 01/18/2025</div>
+              <div class="case-meta">Washington, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/137932?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:36 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12085 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Graham Lacher</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 37</div>
+              <div class="case-meta">Last seen 06/06/2022</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/93172?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:37 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11128 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Graham Lacher</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 37</div>
+              <div class="case-meta">Last seen 06/06/2022</div>
+              <div class="case-meta">Penobscot, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/93172?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:37 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11624 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Nicholas Lang</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 02/11/2022</div>
+              <div class="case-meta">York, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/89506?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP60610</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-44</div>
+              <div class="case-meta">Found 12/18/1991</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/60610?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:18-44)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11013 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Nicholas Lang</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 02/11/2022</div>
+              <div class="case-meta">York, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/89506?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15465</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 08/09/1990</div>
+              <div class="case-meta">Hancock, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15465?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:40-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11509 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Attiin Shaw</div>
+              <div class="case-meta">female &bull; Asian &bull; Age 33</div>
+              <div class="case-meta">Last seen 09/08/2021</div>
+              <div class="case-meta">Aroostook, ME</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/101701?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP15135</div>
+              <div class="case-meta">female &bull; Asian &bull; Est. age 30-50</div>
+              <div class="case-meta">Found 05/22/2015</div>
+              <div class="case-meta">Cumberland, ME</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/15135?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (Asian)</li><li>Age strong match (MP:33 / UP:30-50)</li><li>Same state (ME)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2301 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div></div>
+<script>
+function filterCards(tier,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let v=0;
+  document.querySelectorAll('.card').forEach(c=>{
+    const show=tier==='ALL'||c.dataset.tier===tier;
+    c.style.display=show?'block':'none';
+    if(show)v++;
+  });
+  document.getElementById('result-count').textContent=v+' shown';
+}
+document.getElementById('result-count').textContent=document.querySelectorAll('.card').length+' shown';
+</script>
+</body></html>

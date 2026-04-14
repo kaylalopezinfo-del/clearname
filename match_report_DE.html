@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NamUs Match Report - DE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f12;--surface:#13161b;--border:#1f2429;--text:#c9d1d9;--muted:#6e7681;--high:#f85149;--high-bg:rgba(248,81,73,0.08);--med:#e3b341;--med-bg:rgba(227,179,65,0.08);--low:#3fb950;--low-bg:rgba(63,185,80,0.08);--accent:#58a6ff;--for:#3fb950;--against:#f85149}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:28px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header-left h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#fff}
+.header-left p{color:var(--muted);font-size:12px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{text-align:center;padding:10px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff;line-height:1}
+.stat-num.high{color:var(--high)}.stat-num.medium{color:var(--med)}.stat-num.low{color:var(--low)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+.controls{padding:16px 40px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls span{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace}
+.filter-btn{padding:6px 14px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.15s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.filter-btn.active.high{background:var(--high);border-color:var(--high)}
+.filter-btn.active.medium{background:var(--med);border-color:var(--med)}
+.filter-btn.active.low{background:var(--low);border-color:var(--low)}
+.main{padding:24px 40px}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:16px;overflow:hidden}
+.card.high{border-left:3px solid var(--high)}.card.medium{border-left:3px solid var(--med)}.card.low{border-left:3px solid var(--low)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.tier-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:3px 10px;border-radius:3px}
+.tier-badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high)}
+.tier-badge.medium{background:var(--med-bg);color:var(--med);border:1px solid var(--med)}
+.tier-badge.low{background:var(--low-bg);color:var(--low);border:1px solid var(--low)}
+.score-box{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff}
+.score-box span{font-size:13px;color:var(--muted)}
+.card-body{display:grid;grid-template-columns:1fr 40px 1fr;padding:20px}
+.case-col{padding:0 16px}
+.case-col:first-child{padding-left:0;border-right:1px solid var(--border)}
+.case-col:last-child{padding-right:0}
+.divider{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+.case-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.case-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.case-meta{color:var(--muted);font-size:12px;margin-bottom:2px}
+.case-link{display:inline-block;margin-top:10px;color:var(--accent);text-decoration:none;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.case-link:hover{opacity:0.75;text-decoration:underline}
+.evidence{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)}
+.evidence-col{padding:14px 20px}
+.evidence-col:first-child{border-right:1px solid var(--border)}
+.evidence-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.evidence-title.for{color:var(--for)}.evidence-title.against{color:var(--against)}
+.evidence-col ul{list-style:none;padding:0}
+.evidence-col ul li{font-size:12px;color:var(--muted);padding:2px 0 2px 14px;position:relative;line-height:1.5}
+.evidence-col:first-child ul li::before{content:"+";position:absolute;left:0;color:var(--for);font-weight:600}
+.evidence-col:last-child ul li::before{content:"!";position:absolute;left:0;color:var(--against);font-weight:600}
+#result-count{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-left:auto}
+</style></head><body>
+<header>
+  <div class="header-left"><h1>NamUs // Match Report</h1>
+  <p>Generated April 14, 2026 at 08:43 &bull; State: DE &bull; Showing top 62 of 62 candidates</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">62</div><div class="stat-label">Shown</div></div>
+    <div class="stat"><div class="stat-num high">0</div><div class="stat-label">High</div></div>
+    <div class="stat"><div class="stat-num medium">62</div><div class="stat-label">Medium</div></div>
+    <div class="stat"><div class="stat-num low">0</div><div class="stat-label">Low</div></div>
+  </div>
+</header>
+<div class="controls">
+  <span>FILTER:</span>
+  <button class="filter-btn active" onclick="filterCards('ALL',this)">All</button>
+  <button class="filter-btn high" onclick="filterCards('HIGH',this)">High</button>
+  <button class="filter-btn medium" onclick="filterCards('MEDIUM',this)">Medium</button>
+  <button class="filter-btn low" onclick="filterCards('LOW',this)">Low</button>
+  <div id="result-count"></div>
+</div>
+<div class="main"><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">74<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Perez, Sr.</div>
+              <div class="case-meta">male &bull; Hispanic / Latino &bull; Age 27</div>
+              <div class="case-meta">Last seen 10/02/1990</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6927?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6886</div>
+              <div class="case-meta">male &bull; Hispanic / Latino &bull; Est. age 20-50</div>
+              <div class="case-meta">Found 11/02/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6886?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Hispanic / Latino)</li><li>Age strong match (MP:27 / UP:20-50)</li><li>Same state (DE)</li><li>Same county (New Castle)</li><li>Body found 396 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (396 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">69<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Donald Harrigan</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 49</div>
+              <div class="case-meta">Last seen 04/01/2005</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5662?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:49 / UP:16-50)</li><li>Same state (DE)</li><li>Body found 841 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (841 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">64<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Katie Sinclair</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 53</div>
+              <div class="case-meta">Last seen 07/10/1993</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/189?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2212</div>
+              <div class="case-meta">female &bull; White / Caucasian, Hispanic / Latino, Other &bull; Est. age 20-45</div>
+              <div class="case-meta">Found 11/25/1993</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2212?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino, Other)</li><li>Same state (DE)</li><li>Body found within 6 months (138 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Age possible but loose (MP:53 / UP:20-45)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">63<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Mary Ann Knightly</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 02/18/1998</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5630?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:25-70)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (4854 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">63<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Cary Huie</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 42</div>
+              <div class="case-meta">Last seen 01/20/1998</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6948?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:42 / UP:25-70)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (4883 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">63<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Anne Fahey</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 30</div>
+              <div class="case-meta">Last seen 06/27/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/8229?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:30 / UP:25-70)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (5455 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">63<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Perez, Sr.</div>
+              <div class="case-meta">male &bull; Hispanic / Latino &bull; Age 27</div>
+              <div class="case-meta">Last seen 10/02/1990</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6927?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6632</div>
+              <div class="case-meta">male &bull; Hispanic / Latino &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 10/17/1994</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6632?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Hispanic / Latino)</li><li>Age strong match (MP:27 / UP:25-35)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (1476 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Purcell, III</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 10/13/2003</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/7956?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:38 / UP:20-40)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2513 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Purcell, III</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 10/13/2003</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/7956?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:38 / UP:25-55)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4668 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Patrick Sukeforth</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 05/27/2002</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6932?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:20-40)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2009 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Patrick Sukeforth</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 33</div>
+              <div class="case-meta">Last seen 05/27/2002</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6932?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:33 / UP:25-55)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4164 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gerald Carroll, Sr.</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 10/22/2001</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6928?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:25-55)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3947 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Mary Ann Knightly</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 02/18/1998</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5630?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2212</div>
+              <div class="case-meta">female &bull; White / Caucasian, Hispanic / Latino, Other &bull; Est. age 20-45</div>
+              <div class="case-meta">Found 11/25/1993</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2212?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino, Other)</li><li>Age strong match (MP:28 / UP:20-45)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 1546 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Cary Huie</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 42</div>
+              <div class="case-meta">Last seen 01/20/1998</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6948?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2212</div>
+              <div class="case-meta">female &bull; White / Caucasian, Hispanic / Latino, Other &bull; Est. age 20-45</div>
+              <div class="case-meta">Found 11/25/1993</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2212?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino, Other)</li><li>Age strong match (MP:42 / UP:20-45)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 1517 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Anne Fahey</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 30</div>
+              <div class="case-meta">Last seen 06/27/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/8229?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2212</div>
+              <div class="case-meta">female &bull; White / Caucasian, Hispanic / Latino, Other &bull; Est. age 20-45</div>
+              <div class="case-meta">Found 11/25/1993</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2212?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino, Other)</li><li>Age strong match (MP:30 / UP:20-45)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 945 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Lank</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 42</div>
+              <div class="case-meta">Last seen 12/13/1992</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/9496?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:42 / UP:25-55)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 712 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Nefertiri Trader</div>
+              <div class="case-meta">female &bull; Black / African American &bull; Age 33</div>
+              <div class="case-meta">Last seen 06/29/2014</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/25248?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6288</div>
+              <div class="case-meta">female &bull; Black / African American &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 01/24/2002</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6288?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:33 / UP:20-40)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4539 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jennifer Atherton</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 30</div>
+              <div class="case-meta">Last seen 11/05/2012</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/72798?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:30 / UP:25-70)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 520 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jennifer Atherton</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 30</div>
+              <div class="case-meta">Last seen 11/05/2012</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/72798?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2212</div>
+              <div class="case-meta">female &bull; White / Caucasian, Hispanic / Latino, Other &bull; Est. age 20-45</div>
+              <div class="case-meta">Found 11/25/1993</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2212?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino, Other)</li><li>Age strong match (MP:30 / UP:20-45)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 6920 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Twalier Jenkins</div>
+              <div class="case-meta">female &bull; Black / African American &bull; Age 33</div>
+              <div class="case-meta">Last seen 09/07/2012</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/21302?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6288</div>
+              <div class="case-meta">female &bull; Black / African American &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 01/24/2002</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6288?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:33 / UP:20-40)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3879 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Glenn Doldan</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 54</div>
+              <div class="case-meta">Last seen 12/11/2010</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/10482?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:54 / UP:25-55)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7284 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Cristina Hernandez-Abarco</div>
+              <div class="case-meta">female &bull; Hispanic / Latino &bull; Age 21</div>
+              <div class="case-meta">Last seen 01/16/2009</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/139644?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2212</div>
+              <div class="case-meta">female &bull; White / Caucasian, Hispanic / Latino, Other &bull; Est. age 20-45</div>
+              <div class="case-meta">Found 11/25/1993</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2212?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race overlaps (Hispanic / Latino / White / Caucasian, Hispanic / Latino, Other)</li><li>Age strong match (MP:21 / UP:20-45)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 5531 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Risha Lewis</div>
+              <div class="case-meta">female &bull; Black / African American &bull; Age 26</div>
+              <div class="case-meta">Last seen 01/21/2006</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/2261?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6288</div>
+              <div class="case-meta">female &bull; Black / African American &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 01/24/2002</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6288?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:26 / UP:20-40)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1458 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Celli</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 23</div>
+              <div class="case-meta">Last seen 05/19/2018</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/51665?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:23 / UP:20-40)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7845 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Celli</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 23</div>
+              <div class="case-meta">Last seen 05/19/2018</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/51665?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:23 / UP:25-55)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 10000 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Benjamin Archer</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 32</div>
+              <div class="case-meta">Last seen 03/02/2016</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/33696?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:32 / UP:20-40)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7037 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Benjamin Archer</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 32</div>
+              <div class="case-meta">Last seen 03/02/2016</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/33696?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:32 / UP:25-55)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9192 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Robert Maguire</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 50</div>
+              <div class="case-meta">Last seen 01/12/2025</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/137811?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:50 / UP:25-55)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 12430 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Norman Ramsay</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 49</div>
+              <div class="case-meta">Last seen 10/01/2003</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/11005?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:49 / UP:16-50)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (1389 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">AbdulNur Wilson</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 17</div>
+              <div class="case-meta">Last seen 11/10/1998</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6819?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:17 / UP:16-50)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (3175 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Damond Emory</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 22</div>
+              <div class="case-meta">Last seen 02/27/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:22 / UP:16-50)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (4162 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Marvin Odom</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 20</div>
+              <div class="case-meta">Last seen 01/01/1995</div>
+              <div class="case-meta">Kent, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/134500?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:20 / UP:16-50)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (4584 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Barbara Vanwinkle</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 61</div>
+              <div class="case-meta">Last seen 05/21/1994</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6970?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:61 / UP:25-70)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (6223 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Katie Sinclair</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 53</div>
+              <div class="case-meta">Last seen 07/10/1993</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/189?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:53 / UP:25-70)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (6538 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Sandra Andrews</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 11/16/1990</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5253?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:25-70)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (7505 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Sandra Andrews</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 11/16/1990</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5253?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2212</div>
+              <div class="case-meta">female &bull; White / Caucasian, Hispanic / Latino, Other &bull; Est. age 20-45</div>
+              <div class="case-meta">Found 11/25/1993</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2212?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino, Other)</li><li>Age strong match (MP:44 / UP:20-45)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found over 3 years after disappearance (1105 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Nathan Patrycia</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 18</div>
+              <div class="case-meta">Last seen 03/20/2003</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/8125?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:18 / UP:20-40)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2306 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gregory Snyder</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 11/27/2000</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5177?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:20-40)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1463 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gregory Snyder</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 11/27/2000</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5177?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:25-55)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3618 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Vickers</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 04/06/1998</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6935?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:38 / UP:20-40)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 497 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Richard Vickers</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 04/06/1998</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6935?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:38 / UP:25-55)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2652 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Lank</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 42</div>
+              <div class="case-meta">Last seen 12/13/1992</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/9496?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age reasonable match (MP:42 / UP:20-40)</li><li>Same state (DE)</li><li>Same county (New Castle)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (1443 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Lois Rodriguez</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 52</div>
+              <div class="case-meta">Last seen 05/31/2012</div>
+              <div class="case-meta">Kent, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/25893?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:52 / UP:25-70)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 362 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jamir Richardson</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 30</div>
+              <div class="case-meta">Last seen 05/14/2012</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/14744?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:30 / UP:16-50)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1759 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joel Thompson, Jr.</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 48</div>
+              <div class="case-meta">Last seen 04/26/2010</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/7642?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:48 / UP:25-55)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7055 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">David Whitehair</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 17</div>
+              <div class="case-meta">Last seen 04/23/2010</div>
+              <div class="case-meta">Kent, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/7872?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:17 / UP:20-40)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4897 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gregory Forte</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 29</div>
+              <div class="case-meta">Last seen 02/09/2010</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5622?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:29 / UP:20-40)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4824 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gregory Forte</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 29</div>
+              <div class="case-meta">Last seen 02/09/2010</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/5622?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:29 / UP:25-55)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6979 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Adrian Anderson</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 30</div>
+              <div class="case-meta">Last seen 07/29/2009</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/8536?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:30 / UP:16-50)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 739 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Mark Potts</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 44</div>
+              <div class="case-meta">Last seen 05/11/2009</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/9352?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:44 / UP:16-50)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 660 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Bruce Weaver</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 50</div>
+              <div class="case-meta">Last seen 10/09/2008</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/52352?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:50 / UP:25-55)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6491 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Gary Mayo</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 44</div>
+              <div class="case-meta">Last seen 11/22/2007</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6931?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:44 / UP:16-50)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 124 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Lynn Deibert</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 53</div>
+              <div class="case-meta">Last seen 02/04/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/8514?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:53 / UP:25-55)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5878 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">George Harris</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 57</div>
+              <div class="case-meta">Last seen 01/06/2006</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6930?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2270</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 60-75</div>
+              <div class="case-meta">Found 04/20/1990</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2270?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:57 / UP:60-75)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5740 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Sheila Doyle</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 66</div>
+              <div class="case-meta">Last seen 06/15/2020</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/71426?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:66 / UP:25-70)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3299 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Courtney Finnell</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 32</div>
+              <div class="case-meta">Last seen 09/01/2016</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/55547?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8827</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 25-70</div>
+              <div class="case-meta">Found 06/04/2011</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8827?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:32 / UP:25-70)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1916 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Courtney Finnell</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 32</div>
+              <div class="case-meta">Last seen 09/01/2016</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/55547?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP2212</div>
+              <div class="case-meta">female &bull; White / Caucasian, Hispanic / Latino, Other &bull; Est. age 20-45</div>
+              <div class="case-meta">Found 11/25/1993</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/2212?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino, Other)</li><li>Age strong match (MP:32 / UP:20-45)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 8316 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael McConnell</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 05/21/2016</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/55545?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:20-40)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 7117 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael McConnell</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 28</div>
+              <div class="case-meta">Last seen 05/21/2016</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/55545?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:28 / UP:25-55)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9272 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Peter Davis</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Age 31</div>
+              <div class="case-meta">Last seen 06/18/2025</div>
+              <div class="case-meta">Kent, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/152630?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP10925</div>
+              <div class="case-meta">male &bull; Black / African American &bull; Est. age 16-50</div>
+              <div class="case-meta">Found 07/21/2007</div>
+              <div class="case-meta">Sussex, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/10925?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (Black / African American)</li><li>Age strong match (MP:31 / UP:16-50)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6542 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Paul Forbes</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 08/07/2022</div>
+              <div class="case-meta">Kent, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/119350?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP6277</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 20-40</div>
+              <div class="case-meta">Found 11/25/1996</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/6277?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:20-40)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 9386 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Paul Forbes</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 08/07/2022</div>
+              <div class="case-meta">Kent, DE</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/119350?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP8855</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-55</div>
+              <div class="case-meta">Found 01/01/1991</div>
+              <div class="case-meta">New Castle, DE</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/8855?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:40 / UP:25-55)</li><li>Same state (DE)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 11541 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div></div>
+<script>
+function filterCards(tier,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let v=0;
+  document.querySelectorAll('.card').forEach(c=>{
+    const show=tier==='ALL'||c.dataset.tier===tier;
+    c.style.display=show?'block':'none';
+    if(show)v++;
+  });
+  document.getElementById('result-count').textContent=v+' shown';
+}
+document.getElementById('result-count').textContent=document.querySelectorAll('.card').length+' shown';
+</script>
+</body></html>

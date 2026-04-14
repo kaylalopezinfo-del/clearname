@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NamUs Match Report - VT</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f12;--surface:#13161b;--border:#1f2429;--text:#c9d1d9;--muted:#6e7681;--high:#f85149;--high-bg:rgba(248,81,73,0.08);--med:#e3b341;--med-bg:rgba(227,179,65,0.08);--low:#3fb950;--low-bg:rgba(63,185,80,0.08);--accent:#58a6ff;--for:#3fb950;--against:#f85149}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:28px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header-left h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#fff}
+.header-left p{color:var(--muted);font-size:12px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{text-align:center;padding:10px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff;line-height:1}
+.stat-num.high{color:var(--high)}.stat-num.medium{color:var(--med)}.stat-num.low{color:var(--low)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+.controls{padding:16px 40px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls span{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace}
+.filter-btn{padding:6px 14px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.15s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.filter-btn.active.high{background:var(--high);border-color:var(--high)}
+.filter-btn.active.medium{background:var(--med);border-color:var(--med)}
+.filter-btn.active.low{background:var(--low);border-color:var(--low)}
+.main{padding:24px 40px}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:16px;overflow:hidden}
+.card.high{border-left:3px solid var(--high)}.card.medium{border-left:3px solid var(--med)}.card.low{border-left:3px solid var(--low)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.tier-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:3px 10px;border-radius:3px}
+.tier-badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high)}
+.tier-badge.medium{background:var(--med-bg);color:var(--med);border:1px solid var(--med)}
+.tier-badge.low{background:var(--low-bg);color:var(--low);border:1px solid var(--low)}
+.score-box{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff}
+.score-box span{font-size:13px;color:var(--muted)}
+.card-body{display:grid;grid-template-columns:1fr 40px 1fr;padding:20px}
+.case-col{padding:0 16px}
+.case-col:first-child{padding-left:0;border-right:1px solid var(--border)}
+.case-col:last-child{padding-right:0}
+.divider{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+.case-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.case-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.case-meta{color:var(--muted);font-size:12px;margin-bottom:2px}
+.case-link{display:inline-block;margin-top:10px;color:var(--accent);text-decoration:none;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.case-link:hover{opacity:0.75;text-decoration:underline}
+.evidence{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)}
+.evidence-col{padding:14px 20px}
+.evidence-col:first-child{border-right:1px solid var(--border)}
+.evidence-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.evidence-title.for{color:var(--for)}.evidence-title.against{color:var(--against)}
+.evidence-col ul{list-style:none;padding:0}
+.evidence-col ul li{font-size:12px;color:var(--muted);padding:2px 0 2px 14px;position:relative;line-height:1.5}
+.evidence-col:first-child ul li::before{content:"+";position:absolute;left:0;color:var(--for);font-weight:600}
+.evidence-col:last-child ul li::before{content:"!";position:absolute;left:0;color:var(--against);font-weight:600}
+#result-count{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-left:auto}
+</style></head><body>
+<header>
+  <div class="header-left"><h1>NamUs // Match Report</h1>
+  <p>Generated April 14, 2026 at 08:43 &bull; State: VT &bull; Showing top 35 of 35 candidates</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">35</div><div class="stat-label">Shown</div></div>
+    <div class="stat"><div class="stat-num high">14</div><div class="stat-label">High</div></div>
+    <div class="stat"><div class="stat-num medium">21</div><div class="stat-label">Medium</div></div>
+    <div class="stat"><div class="stat-num low">0</div><div class="stat-label">Low</div></div>
+  </div>
+</header>
+<div class="controls">
+  <span>FILTER:</span>
+  <button class="filter-btn active" onclick="filterCards('ALL',this)">All</button>
+  <button class="filter-btn high" onclick="filterCards('HIGH',this)">High</button>
+  <button class="filter-btn medium" onclick="filterCards('MEDIUM',this)">Medium</button>
+  <button class="filter-btn low" onclick="filterCards('LOW',this)">Low</button>
+  <div id="result-count"></div>
+</div>
+<div class="main"><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">100<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Maidie Gibbs</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 89</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13707?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:89 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">100<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Laura Lewis</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 18</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13687?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:18 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">100<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Blanche Gibbs</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 96</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13712?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:96 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">100<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Ruth Gibbs</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 74</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13715?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:74 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">100<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Nelson Gibbs</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 91</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13716?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:91 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">100<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Ethel Gibbs</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 83</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13710?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:83 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">100<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Maurice Gibbs</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 92</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13705?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:92 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">95<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Marble Arvidson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 17</div>
+              <div class="case-meta">Last seen 08/27/2011</div>
+              <div class="case-meta">Windham, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/12955?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:17 / UP:18-99)</li><li>Same state (VT)</li><li>Body found within 2 weeks (6 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">92<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Beula Gibbs</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 12</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13708?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age reasonable match (MP:12 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">80<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Brown Maxwell</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 114</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13690?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Age mismatch (MP:114 / UP:18-99)</li></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">80<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Walter App</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 4</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/13701?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Age mismatch (MP:4 / UP:18-99)</li></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">79<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">William Currier</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 50</div>
+              <div class="case-meta">Last seen 06/08/2011</div>
+              <div class="case-meta">Chittenden, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/11678?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:50 / UP:18-99)</li><li>Same state (VT)</li><li>Body found within 6 months (86 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">79<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Lorraine Currier</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 55</div>
+              <div class="case-meta">Last seen 06/08/2011</div>
+              <div class="case-meta">Chittenden, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/11677?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:55 / UP:18-99)</li><li>Same state (VT)</li><li>Body found within 6 months (86 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul></ul></div>
+          </div>
+        </div><div class="card high" data-tier="HIGH">
+          <div class="card-header">
+            <div class="tier-badge high">HIGH</div>
+            <div class="score-box">75<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Edna Fasset</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 114</div>
+              <div class="case-meta">Last seen 08/28/2011</div>
+              <div class="case-meta">Orange, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17921?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Same state (VT)</li><li>Body found within 2 weeks (5 days after disappearance)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Age mismatch (MP:114 / UP:18-99)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">74<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Bryan Gomez</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 48</div>
+              <div class="case-meta">Last seen 06/10/2010</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/34478?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:48 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li><li>Body found 449 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (449 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">63<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Jeffrey Bowen</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 43</div>
+              <div class="case-meta">Last seen 10/02/2004</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6978?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:43 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2526 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Lynn Perry</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 56</div>
+              <div class="case-meta">Last seen 07/27/2015</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/34479?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:56 / UP:18-99)</li><li>Same state (VT)</li><li>Same county (Windsor)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1424 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Michael Dumont</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 50</div>
+              <div class="case-meta">Last seen 11/22/2004</div>
+              <div class="case-meta">Chittenden, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/35700?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:50 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2475 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Philip Jackman</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 21</div>
+              <div class="case-meta">Last seen 07/07/2004</div>
+              <div class="case-meta">Orange, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/31623?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:21 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2613 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Brianna Maitland</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 17</div>
+              <div class="case-meta">Last seen 03/19/2004</div>
+              <div class="case-meta">Franklin, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/2030?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:17 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2723 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Mark Husk</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 49</div>
+              <div class="case-meta">Last seen 10/12/2003</div>
+              <div class="case-meta">Addison, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/2842?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:49 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (2882 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Perry Matheson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 49</div>
+              <div class="case-meta">Last seen 09/30/1993</div>
+              <div class="case-meta">Washington, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6967?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:49 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (6546 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Audrey Groat</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 41</div>
+              <div class="case-meta">Last seen 08/21/1993</div>
+              <div class="case-meta">Washington, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6966?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:41 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (6586 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Heide Wilbur</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 16</div>
+              <div class="case-meta">Last seen 02/09/1991</div>
+              <div class="case-meta">Rutland, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6974?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:16 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (7510 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Robert Hughes</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 59</div>
+              <div class="case-meta">Last seen 08/17/2008</div>
+              <div class="case-meta">Windham, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/26389?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:59 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (1111 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Mary Wilcox</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 78</div>
+              <div class="case-meta">Last seen 11/09/2006</div>
+              <div class="case-meta">Chittenden, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/103?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:78 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (1758 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Donald Messier</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 34</div>
+              <div class="case-meta">Last seen 10/15/2006</div>
+              <div class="case-meta">Washington, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/6977?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:34 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (1783 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Ronald Labonte</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 74</div>
+              <div class="case-meta">Last seen 09/26/2013</div>
+              <div class="case-meta">Essex, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/28579?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:74 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 755 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Paul Lutteur</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 66</div>
+              <div class="case-meta">Last seen 10/29/2019</div>
+              <div class="case-meta">Washington, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/61377?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:66 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2979 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Krystal Bailey</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 29</div>
+              <div class="case-meta">Last seen 02/25/2017</div>
+              <div class="case-meta">Washington, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/83547?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:29 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2003 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Sean Hawley</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 25</div>
+              <div class="case-meta">Last seen 05/09/2015</div>
+              <div class="case-meta">Chittenden, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/29560?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:25 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1345 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joseph Gagnon</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 52</div>
+              <div class="case-meta">Last seen 03/14/2025</div>
+              <div class="case-meta">Chittenden, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/141764?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:52 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 4942 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Christopher Harper</div>
+              <div class="case-meta">male &bull; White / Caucasian, Other &bull; Age 37</div>
+              <div class="case-meta">Last seen 11/22/2024</div>
+              <div class="case-meta">Chittenden, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/141759?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9615</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9615?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian, Other / White / Caucasian)</li><li>Age strong match (MP:37 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 4830 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Mary Reid</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 53</div>
+              <div class="case-meta">Last seen 03/25/2022</div>
+              <div class="case-meta">Bennington, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/92320?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:53 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3857 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Ashley Goodrich</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Age 34</div>
+              <div class="case-meta">Last seen 10/17/2021</div>
+              <div class="case-meta">Rutland, VT</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/103658?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP9616</div>
+              <div class="case-meta">female &bull; White / Caucasian &bull; Est. age 18-99</div>
+              <div class="case-meta">Found 09/02/2011</div>
+              <div class="case-meta">Windsor, VT</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/9616?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (female)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:34 / UP:18-99)</li><li>Same state (VT)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 3698 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div></div>
+<script>
+function filterCards(tier,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let v=0;
+  document.querySelectorAll('.card').forEach(c=>{
+    const show=tier==='ALL'||c.dataset.tier===tier;
+    c.style.display=show?'block':'none';
+    if(show)v++;
+  });
+  document.getElementById('result-count').textContent=v+' shown';
+}
+document.getElementById('result-count').textContent=document.querySelectorAll('.card').length+' shown';
+</script>
+</body></html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NamUs Match Report - WY</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f12;--surface:#13161b;--border:#1f2429;--text:#c9d1d9;--muted:#6e7681;--high:#f85149;--high-bg:rgba(248,81,73,0.08);--med:#e3b341;--med-bg:rgba(227,179,65,0.08);--low:#3fb950;--low-bg:rgba(63,185,80,0.08);--accent:#58a6ff;--for:#3fb950;--against:#f85149}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:28px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header-left h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#fff}
+.header-left p{color:var(--muted);font-size:12px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{text-align:center;padding:10px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff;line-height:1}
+.stat-num.high{color:var(--high)}.stat-num.medium{color:var(--med)}.stat-num.low{color:var(--low)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+.controls{padding:16px 40px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls span{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace}
+.filter-btn{padding:6px 14px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.15s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.filter-btn.active.high{background:var(--high);border-color:var(--high)}
+.filter-btn.active.medium{background:var(--med);border-color:var(--med)}
+.filter-btn.active.low{background:var(--low);border-color:var(--low)}
+.main{padding:24px 40px}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:16px;overflow:hidden}
+.card.high{border-left:3px solid var(--high)}.card.medium{border-left:3px solid var(--med)}.card.low{border-left:3px solid var(--low)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.tier-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:3px 10px;border-radius:3px}
+.tier-badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high)}
+.tier-badge.medium{background:var(--med-bg);color:var(--med);border:1px solid var(--med)}
+.tier-badge.low{background:var(--low-bg);color:var(--low);border:1px solid var(--low)}
+.score-box{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff}
+.score-box span{font-size:13px;color:var(--muted)}
+.card-body{display:grid;grid-template-columns:1fr 40px 1fr;padding:20px}
+.case-col{padding:0 16px}
+.case-col:first-child{padding-left:0;border-right:1px solid var(--border)}
+.case-col:last-child{padding-right:0}
+.divider{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+.case-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.case-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.case-meta{color:var(--muted);font-size:12px;margin-bottom:2px}
+.case-link{display:inline-block;margin-top:10px;color:var(--accent);text-decoration:none;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.case-link:hover{opacity:0.75;text-decoration:underline}
+.evidence{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)}
+.evidence-col{padding:14px 20px}
+.evidence-col:first-child{border-right:1px solid var(--border)}
+.evidence-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.evidence-title.for{color:var(--for)}.evidence-title.against{color:var(--against)}
+.evidence-col ul{list-style:none;padding:0}
+.evidence-col ul li{font-size:12px;color:var(--muted);padding:2px 0 2px 14px;position:relative;line-height:1.5}
+.evidence-col:first-child ul li::before{content:"+";position:absolute;left:0;color:var(--for);font-weight:600}
+.evidence-col:last-child ul li::before{content:"!";position:absolute;left:0;color:var(--against);font-weight:600}
+#result-count{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-left:auto}
+</style></head><body>
+<header>
+  <div class="header-left"><h1>NamUs // Match Report</h1>
+  <p>Generated April 14, 2026 at 08:43 &bull; State: WY &bull; Showing top 13 of 13 candidates</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">13</div><div class="stat-label">Shown</div></div>
+    <div class="stat"><div class="stat-num high">0</div><div class="stat-label">High</div></div>
+    <div class="stat"><div class="stat-num medium">13</div><div class="stat-label">Medium</div></div>
+    <div class="stat"><div class="stat-num low">0</div><div class="stat-label">Low</div></div>
+  </div>
+</header>
+<div class="controls">
+  <span>FILTER:</span>
+  <button class="filter-btn active" onclick="filterCards('ALL',this)">All</button>
+  <button class="filter-btn high" onclick="filterCards('HIGH',this)">High</button>
+  <button class="filter-btn medium" onclick="filterCards('MEDIUM',this)">Medium</button>
+  <button class="filter-btn low" onclick="filterCards('LOW',this)">Low</button>
+  <div id="result-count"></div>
+</div>
+<div class="main"><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">69<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">James Bundesen</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 40</div>
+              <div class="case-meta">Last seen 08/27/1993</div>
+              <div class="case-meta">Sheridan, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/117804?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12121</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 11/11/1995</div>
+              <div class="case-meta">Campbell, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12121?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:40 / UP:40-50)</li><li>Same state (WY)</li><li>Body found 806 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Long gap (806 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">69<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Cian McLaughlin</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 27</div>
+              <div class="case-meta">Last seen 06/08/2021</div>
+              <div class="case-meta">Teton, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/81392?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP115209</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 11/11/2023</div>
+              <div class="case-meta">Sweetwater, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/115209?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:27 / UP:25-35)</li><li>Same state (WY)</li><li>Body found 886 days after disappearance</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Long gap (886 days) - verify connection</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Roy Vavra</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 01/24/2006</div>
+              <div class="case-meta">Campbell, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/85?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12121</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 11/11/1995</div>
+              <div class="case-meta">Campbell, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12121?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:38 / UP:40-50)</li><li>Same state (WY)</li><li>Same county (Campbell)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 3727 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Tracy Jensen</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 23</div>
+              <div class="case-meta">Last seen 02/11/1999</div>
+              <div class="case-meta">Sublette, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/72468?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP115209</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 11/11/2023</div>
+              <div class="case-meta">Sweetwater, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/115209?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:23 / UP:25-35)</li><li>Same state (WY)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (9039 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">David Crouch</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 27</div>
+              <div class="case-meta">Last seen 09/07/1997</div>
+              <div class="case-meta">Sublette, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/26323?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP115209</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 11/11/2023</div>
+              <div class="case-meta">Sweetwater, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/115209?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:27 / UP:25-35)</li><li>Same state (WY)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (9561 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Rudolph Fantin</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 08/11/1991</div>
+              <div class="case-meta">Sweetwater, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/117802?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12121</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 11/11/1995</div>
+              <div class="case-meta">Campbell, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12121?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:38 / UP:40-50)</li><li>Same state (WY)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found over 3 years after disappearance (1553 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Seth Uptain</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 32</div>
+              <div class="case-meta">Last seen 04/04/2010</div>
+              <div class="case-meta">Natrona, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/8498?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP115209</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 11/11/2023</div>
+              <div class="case-meta">Sweetwater, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/115209?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:32 / UP:25-35)</li><li>Same state (WY)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (4969 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Clifford Haux</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 42</div>
+              <div class="case-meta">Last seen 11/27/2003</div>
+              <div class="case-meta">Sweetwater, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/20502?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12121</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 11/11/1995</div>
+              <div class="case-meta">Campbell, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12121?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:42 / UP:40-50)</li><li>Same state (WY)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 2938 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Rudolph Fantin</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 08/11/1991</div>
+              <div class="case-meta">Sweetwater, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/117802?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP115209</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 25-35</div>
+              <div class="case-meta">Found 11/11/2023</div>
+              <div class="case-meta">Sweetwater, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/115209?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age reasonable match (MP:38 / UP:25-35)</li><li>Same state (WY)</li><li>Same county (Sweetwater)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (11780 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Wesley Nebeker</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 43</div>
+              <div class="case-meta">Last seen 11/21/2011</div>
+              <div class="case-meta">Fremont, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/27778?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12121</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 11/11/1995</div>
+              <div class="case-meta">Campbell, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12121?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:43 / UP:40-50)</li><li>Same state (WY)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 5854 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Bruce Pike</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 47</div>
+              <div class="case-meta">Last seen 08/02/2006</div>
+              <div class="case-meta">Teton, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/20704?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12121</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 11/11/1995</div>
+              <div class="case-meta">Campbell, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12121?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:47 / UP:40-50)</li><li>Same state (WY)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 3917 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Paul Pedry</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 43</div>
+              <div class="case-meta">Last seen 07/07/2020</div>
+              <div class="case-meta">Natrona, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/72568?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12121</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 11/11/1995</div>
+              <div class="case-meta">Campbell, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12121?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:43 / UP:40-50)</li><li>Same state (WY)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 9005 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Nash Quinn</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 39</div>
+              <div class="case-meta">Last seen 07/08/2024</div>
+              <div class="case-meta">Albany, WY</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/137066?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP12121</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 40-50</div>
+              <div class="case-meta">Found 11/11/1995</div>
+              <div class="case-meta">Campbell, WY</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/12121?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:39 / UP:40-50)</li><li>Same state (WY)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 10467 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div></div>
+<script>
+function filterCards(tier,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let v=0;
+  document.querySelectorAll('.card').forEach(c=>{
+    const show=tier==='ALL'||c.dataset.tier===tier;
+    c.style.display=show?'block':'none';
+    if(show)v++;
+  });
+  document.getElementById('result-count').textContent=v+' shown';
+}
+document.getElementById('result-count').textContent=document.querySelectorAll('.card').length+' shown';
+</script>
+</body></html>

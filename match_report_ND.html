@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NamUs Match Report - ND</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f12;--surface:#13161b;--border:#1f2429;--text:#c9d1d9;--muted:#6e7681;--high:#f85149;--high-bg:rgba(248,81,73,0.08);--med:#e3b341;--med-bg:rgba(227,179,65,0.08);--low:#3fb950;--low-bg:rgba(63,185,80,0.08);--accent:#58a6ff;--for:#3fb950;--against:#f85149}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:28px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header-left h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#fff}
+.header-left p{color:var(--muted);font-size:12px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{text-align:center;padding:10px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff;line-height:1}
+.stat-num.high{color:var(--high)}.stat-num.medium{color:var(--med)}.stat-num.low{color:var(--low)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+.controls{padding:16px 40px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls span{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace}
+.filter-btn{padding:6px 14px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:all 0.15s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.filter-btn.active.high{background:var(--high);border-color:var(--high)}
+.filter-btn.active.medium{background:var(--med);border-color:var(--med)}
+.filter-btn.active.low{background:var(--low);border-color:var(--low)}
+.main{padding:24px 40px}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:16px;overflow:hidden}
+.card.high{border-left:3px solid var(--high)}.card.medium{border-left:3px solid var(--med)}.card.low{border-left:3px solid var(--low)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.tier-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:3px 10px;border-radius:3px}
+.tier-badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high)}
+.tier-badge.medium{background:var(--med-bg);color:var(--med);border:1px solid var(--med)}
+.tier-badge.low{background:var(--low-bg);color:var(--low);border:1px solid var(--low)}
+.score-box{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff}
+.score-box span{font-size:13px;color:var(--muted)}
+.card-body{display:grid;grid-template-columns:1fr 40px 1fr;padding:20px}
+.case-col{padding:0 16px}
+.case-col:first-child{padding-left:0;border-right:1px solid var(--border)}
+.case-col:last-child{padding-right:0}
+.divider{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+.case-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.case-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.case-meta{color:var(--muted);font-size:12px;margin-bottom:2px}
+.case-link{display:inline-block;margin-top:10px;color:var(--accent);text-decoration:none;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.case-link:hover{opacity:0.75;text-decoration:underline}
+.evidence{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)}
+.evidence-col{padding:14px 20px}
+.evidence-col:first-child{border-right:1px solid var(--border)}
+.evidence-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.evidence-title.for{color:var(--for)}.evidence-title.against{color:var(--against)}
+.evidence-col ul{list-style:none;padding:0}
+.evidence-col ul li{font-size:12px;color:var(--muted);padding:2px 0 2px 14px;position:relative;line-height:1.5}
+.evidence-col:first-child ul li::before{content:"+";position:absolute;left:0;color:var(--for);font-weight:600}
+.evidence-col:last-child ul li::before{content:"!";position:absolute;left:0;color:var(--against);font-weight:600}
+#result-count{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-left:auto}
+</style></head><body>
+<header>
+  <div class="header-left"><h1>NamUs // Match Report</h1>
+  <p>Generated April 14, 2026 at 08:43 &bull; State: ND &bull; Showing top 13 of 13 candidates</p></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">13</div><div class="stat-label">Shown</div></div>
+    <div class="stat"><div class="stat-num high">0</div><div class="stat-label">High</div></div>
+    <div class="stat"><div class="stat-num medium">13</div><div class="stat-label">Medium</div></div>
+    <div class="stat"><div class="stat-num low">0</div><div class="stat-label">Low</div></div>
+  </div>
+</header>
+<div class="controls">
+  <span>FILTER:</span>
+  <button class="filter-btn active" onclick="filterCards('ALL',this)">All</button>
+  <button class="filter-btn high" onclick="filterCards('HIGH',this)">High</button>
+  <button class="filter-btn medium" onclick="filterCards('MEDIUM',this)">Medium</button>
+  <button class="filter-btn low" onclick="filterCards('LOW',this)">Low</button>
+  <div id="result-count"></div>
+</div>
+<div class="main"><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">60<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Kristopher Clarke</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 29</div>
+              <div class="case-meta">Last seen 02/22/2012</div>
+              <div class="case-meta">Mountrail, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17150?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP153582</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 31-57</div>
+              <div class="case-meta">Found 01/01/2007</div>
+              <div class="case-meta">Mountrail, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/153582?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:29 / UP:31-57)</li><li>Same state (ND)</li><li>Same county (Mountrail)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 1878 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joel Amundson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 26</div>
+              <div class="case-meta">Last seen 10/18/1996</div>
+              <div class="case-meta">Williams, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/2572?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP921</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 20-50</div>
+              <div class="case-meta">Found 12/19/2003</div>
+              <div class="case-meta">Grand Forks, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/921?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:26 / UP:20-50)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found over 3 years after disappearance (2618 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Kevin Mahoney</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 25</div>
+              <div class="case-meta">Last seen 10/01/1993</div>
+              <div class="case-meta">Cass, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/7775?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP921</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 20-50</div>
+              <div class="case-meta">Found 12/19/2003</div>
+              <div class="case-meta">Grand Forks, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/921?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:25 / UP:20-50)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found over 3 years after disappearance (3731 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Robert Anderson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 08/15/1993</div>
+              <div class="case-meta">Logan, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/29982?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP921</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 20-50</div>
+              <div class="case-meta">Found 12/19/2003</div>
+              <div class="case-meta">Grand Forks, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/921?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:31 / UP:20-50)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found over 3 years after disappearance (3778 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">58<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Robert Anderson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 31</div>
+              <div class="case-meta">Last seen 08/15/1993</div>
+              <div class="case-meta">Logan, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/29982?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP153582</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 31-57</div>
+              <div class="case-meta">Found 01/01/2007</div>
+              <div class="case-meta">Mountrail, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/153582?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:31 / UP:31-57)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found over 3 years after disappearance (4887 days)</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joe Lee</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 06/01/2013</div>
+              <div class="case-meta">Williams, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/21351?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP921</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 20-50</div>
+              <div class="case-meta">Found 12/19/2003</div>
+              <div class="case-meta">Grand Forks, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/921?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:44 / UP:20-50)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 3452 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Joe Lee</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 44</div>
+              <div class="case-meta">Last seen 06/01/2013</div>
+              <div class="case-meta">Williams, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/21351?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP153582</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 31-57</div>
+              <div class="case-meta">Found 01/01/2007</div>
+              <div class="case-meta">Mountrail, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/153582?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:44 / UP:31-57)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 2343 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Kristopher Clarke</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 29</div>
+              <div class="case-meta">Last seen 02/22/2012</div>
+              <div class="case-meta">Mountrail, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/17150?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP921</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 20-50</div>
+              <div class="case-meta">Found 12/19/2003</div>
+              <div class="case-meta">Grand Forks, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/921?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:29 / UP:20-50)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 2987 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Craig Melton</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 34</div>
+              <div class="case-meta">Last seen 09/17/2020</div>
+              <div class="case-meta">Cass, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/74312?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP921</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 20-50</div>
+              <div class="case-meta">Found 12/19/2003</div>
+              <div class="case-meta">Grand Forks, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/921?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:34 / UP:20-50)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 6117 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Craig Melton</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 34</div>
+              <div class="case-meta">Last seen 09/17/2020</div>
+              <div class="case-meta">Cass, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/74312?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP153582</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 31-57</div>
+              <div class="case-meta">Found 01/01/2007</div>
+              <div class="case-meta">Mountrail, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/153582?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:34 / UP:31-57)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5008 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Keith Schmidt</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 53</div>
+              <div class="case-meta">Last seen 05/20/2024</div>
+              <div class="case-meta">Stark, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/123952?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP153582</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 31-57</div>
+              <div class="case-meta">Found 01/01/2007</div>
+              <div class="case-meta">Mountrail, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/153582?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:53 / UP:31-57)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 6349 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Daniel Olson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 10/28/2021</div>
+              <div class="case-meta">Cass, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/125226?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP921</div>
+              <div class="case-meta">male &bull; White / Caucasian, Hispanic / Latino &bull; Est. age 20-50</div>
+              <div class="case-meta">Found 12/19/2003</div>
+              <div class="case-meta">Grand Forks, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/921?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race overlaps (White / Caucasian / White / Caucasian, Hispanic / Latino)</li><li>Age strong match (MP:38 / UP:20-50)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Race entries differ - overlap only, not exact</li><li>Body found 6523 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div><div class="card medium" data-tier="MEDIUM">
+          <div class="card-header">
+            <div class="tier-badge medium">MEDIUM</div>
+            <div class="score-box">55<span>/100</span></div>
+          </div>
+          <div class="card-body">
+            <div class="case-col">
+              <div class="case-label">MISSING PERSON</div>
+              <div class="case-name">Daniel Olson</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Age 38</div>
+              <div class="case-meta">Last seen 10/28/2021</div>
+              <div class="case-meta">Cass, ND</div>
+              <a href="https://www.namus.gov/MissingPersons/Case#/125226?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+            <div class="divider">&#8596;</div>
+            <div class="case-col">
+              <div class="case-label">UNIDENTIFIED REMAINS</div>
+              <div class="case-name">Case #UP153582</div>
+              <div class="case-meta">male &bull; White / Caucasian &bull; Est. age 31-57</div>
+              <div class="case-meta">Found 01/01/2007</div>
+              <div class="case-meta">Mountrail, ND</div>
+              <a href="https://www.namus.gov/UnidentifiedPersons/Case#/153582?navCase" target="_blank" class="case-link">View NamUs Case &rarr;</a>
+            </div>
+          </div>
+          <div class="evidence">
+            <div class="evidence-col"><div class="evidence-title for">WHY IT FLAGGED</div><ul><li>Sex matches (male)</li><li>Race exact match (White / Caucasian)</li><li>Age strong match (MP:38 / UP:31-57)</li><li>Same state (ND)</li></ul></div>
+            <div class="evidence-col"><div class="evidence-title against">REASONS TO DOUBT</div><ul><li>Body found 5414 days BEFORE disappearance - chronologically unlikely</li></ul></div>
+          </div>
+        </div></div>
+<script>
+function filterCards(tier,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let v=0;
+  document.querySelectorAll('.card').forEach(c=>{
+    const show=tier==='ALL'||c.dataset.tier===tier;
+    c.style.display=show?'block':'none';
+    if(show)v++;
+  });
+  document.getElementById('result-count').textContent=v+' shown';
+}
+document.getElementById('result-count').textContent=document.querySelectorAll('.card').length+' shown';
+</script>
+</body></html>
