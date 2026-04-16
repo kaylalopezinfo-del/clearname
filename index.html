@@ -1305,6 +1305,54 @@ document.getElementById('searchInput').addEventListener('input', function() {
 });
 
 buildStateGrid();
+
+// Auto-load all state reports from the repo root on page open
+const STATE_FILES = [
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+  "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
+  "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
+  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"
+];
+
+async function autoLoadReports() {
+  const banner = document.getElementById('loadBanner');
+  if (banner) banner.innerHTML = '<p><strong>Loading reports...</strong> Please wait while all 50 states are loaded.</p>';
+
+  let loaded = 0;
+  let failed = 0;
+  const total = STATE_FILES.length;
+
+  for (const state of STATE_FILES) {
+    try {
+      const res = await fetch('match_report_' + state + '.html');
+      if (!res.ok) { failed++; continue; }
+      const html = await res.text();
+      const matches = parseReportHTML(html, state);
+      if (matches.length > 0) {
+        allMatches = allMatches.filter(m => m.state !== state).concat(matches);
+        loadedStates.add(state);
+        stateHighCounts[state] = matches.filter(m => m.tier === 'HIGH').length;
+      }
+      loaded++;
+      if (banner) banner.innerHTML = '<p><strong>Loading reports...</strong> ' + loaded + ' of ' + total + ' states loaded...</p>';
+    } catch(e) {
+      failed++;
+    }
+  }
+
+  if (loaded > 0) {
+    if (banner) banner.style.display = 'none';
+    document.getElementById('contentHeader').style.display = 'flex';
+    document.getElementById('progressSection').style.display = 'block';
+    updateAll();
+  } else {
+    if (banner) banner.innerHTML = '<p><strong>Could not auto-load reports.</strong> Use the Admin panel to load reports manually.</p>';
+  }
+}
+
+// Start auto-loading when page opens
+autoLoadReports();
 </script>
 </body>
 </html>
