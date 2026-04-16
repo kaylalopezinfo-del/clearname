@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-J18WVCMRWB"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-J18WVCMRWB');
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClearName — Missing Persons Cross-Reference System</title>
 <style>
@@ -747,6 +755,79 @@ nav {
           <div style="display:flex;gap:10px;font-size:13px;color:var(--muted);"><span style="color:var(--against);font-weight:700;">!</span><span>Always verify the full NamUs case record before submitting.</span></div>
           <div style="display:flex;gap:10px;font-size:13px;color:var(--muted);"><span style="color:var(--for);font-weight:700;">+</span><span>Start with <strong style="color:var(--text);">HIGH confidence matches</strong> — filter using the sidebar.</span></div>
           <div style="display:flex;gap:10px;font-size:13px;color:var(--muted);"><span style="color:var(--for);font-weight:700;">+</span><span>Your reviews are saved in your browser. Use Export Reviews to save a CSV backup.</span></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Email templates</div>
+        <p style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:14px;">Use these templates when submitting a verified match to a medical examiner or law enforcement. Always check the Contacts tab on the NamUs case page for the specific officer name and email.</p>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:1px;color:var(--text);text-transform:uppercase;margin-bottom:8px;padding:8px 12px;background:var(--surface2);border-radius:5px 5px 0 0;border:1px solid var(--border);">For Medical Examiner / Coroner</div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 5px 5px;padding:14px;font-family:DM Mono,monospace;font-size:11px;color:var(--muted);line-height:1.8;white-space:pre-wrap;">Subject: Potential Match - Unidentified Remains Case [UP#] / Missing Person [MP#]
+
+Dear [Medical Examiner/Coroner Name or Office],
+
+My name is [Your Name] and I am a volunteer researcher working with ClearName, a cross-reference tool that matches missing persons reports against unidentified remains using publicly available NamUs data.
+
+I am writing to bring a potential match to your attention for review.
+
+UNIDENTIFIED REMAINS: Case [UP#]
+Found [Date] in [County], [State]
+NamUs: [paste URL]
+
+MISSING PERSON: [Full Name]
+Last seen [Date] in [City], [State]
+NamUs: [paste URL]
+
+WHY IT WAS FLAGGED:
+[Paste the Why It Flagged points from the match card]
+
+Match confidence score: [X]/100
+
+This is an algorithmic candidate only - not a confirmed identification. I reviewed both NamUs records and confirmed this pair does not appear as an existing exclusion.
+
+I am happy to provide additional information about the methodology used. Thank you for your time.
+
+Respectfully,
+[Your Name]
+[Your Email]</div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:1px;color:var(--text);text-transform:uppercase;margin-bottom:8px;padding:8px 12px;background:var(--surface2);border-radius:5px 5px 0 0;border:1px solid var(--border);">For Law Enforcement</div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 5px 5px;padding:14px;font-family:DM Mono,monospace;font-size:11px;color:var(--muted);line-height:1.8;white-space:pre-wrap;">Subject: Potential Match for Review - Missing Person [MP#]
+
+Dear [Detective/Officer Name or Department],
+
+My name is [Your Name] and I am a volunteer researcher working with ClearName, a cross-reference tool that matches missing persons reports against unidentified remains using publicly available NamUs data.
+
+I am reaching out regarding a potential match involving a missing person case from your jurisdiction.
+
+MISSING PERSON: [Full Name]
+Last seen [Date] in [City], [State]
+NamUs: [paste URL]
+
+POTENTIAL MATCH - UNIDENTIFIED REMAINS: Case [UP#]
+Found [Date] in [County], [State]
+NamUs: [paste URL]
+
+WHY IT WAS FLAGGED:
+[Paste the Why It Flagged points from the match card]
+
+Match confidence score: [X]/100
+
+This is an algorithmic candidate only - not a confirmed identification. I reviewed both NamUs records and confirmed this pair does not appear as an existing exclusion. I am bringing it to your attention in case it has not previously been considered.
+
+I appreciate your time. Please feel free to contact me if you have any questions.
+
+Respectfully,
+[Your Name]
+[Your Email]</div>
+        </div>
+
+        <div style="background:rgba(255,165,2,0.06);border:1px solid rgba(255,165,2,0.2);border-radius:6px;padding:12px 16px;">
+          <p style="color:var(--med);font-size:12px;font-family:DM Mono,monospace;line-height:1.6;">&#9888; Always verify the pair is not already an exclusion on NamUs before sending. Find the case officer name under the Contacts tab on the NamUs case page. Do not send the same match to multiple agencies at once.</p>
         </div>
       </div>
 
