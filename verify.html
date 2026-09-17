@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClearName — Search & Verify</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #080a0e; --surface: #0e1118; --surface2: #141820;
+  --border: #1e2530; --border2: #2a3340;
+  --text: #d4dce8; --muted: #5a6a7e;
+  --accent: #00d4ff; --accent2: #0099cc;
+  --mp: #ff4757; --up: #ffa502;
+  --match: #2ed573; --mismatch: #ff4757;
+  --high: #2ed573; --medium: #ffa502; --low: #5a6a7e;
+}
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; }
+body::before { content:''; position:fixed; inset:0; background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+nav { position: sticky; top: 0; z-index: 100; background: rgba(8,10,14,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 48px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+.nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; color: var(--accent); text-decoration: none; }
+.nav-logo span { color: var(--text); }
+.nav-links { display: flex; gap: 20px; list-style: none; align-items: center; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; font-family: 'DM Mono', monospace; letter-spacing: 0.5px; }
+.nav-links a:hover, .nav-links a.active { color: var(--accent); }
+.container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 40px 32px; }
+.hero-tag { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; }
+h1 { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 2px; color: #fff; margin-bottom: 12px; line-height: 1; }
+h1 em { font-style: normal; color: var(--accent); }
+.hero-desc { color: var(--muted); font-size: 14px; max-width: 640px; line-height: 1.7; }
+.admin-gate { max-width: 480px; margin: 60px auto; padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+.admin-gate h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: #fff; margin-bottom: 8px; }
+.admin-gate p { color: var(--muted); font-size: 13px; line-height: 1.7; margin-bottom: 20px; }
+.form-label { display: block; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.form-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; outline: none; transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--muted); }
+.btn { padding: 10px 20px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #000; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+.btn:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary { background: transparent; color: var(--accent); }
+.btn-secondary:hover { background: rgba(0,212,255,0.1); }
+.tool-hidden { display: none; }
+.search-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-top: 32px; margin-bottom: 24px; }
+.search-row { display: grid; grid-template-columns: 1fr 180px 120px; gap: 12px; align-items: end; margin-bottom: 12px; }
+.search-actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+.data-status { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 16px; font-family: 'DM Mono', monospace; font-size: 11px; }
+.data-status.ready { border-color: rgba(46,213,115,0.4); }
+.data-status.loading { border-color: rgba(0,212,255,0.4); }
+.data-status.error { border-color: rgba(255,71,87,0.4); color: var(--mp); }
+.data-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.data-status.ready .data-dot { background: var(--match); }
+.data-status.loading .data-dot { background: var(--accent); animation: pulse 1s infinite; }
+.data-status.error .data-dot { background: var(--mp); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.status { padding: 12px 16px; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 12px; margin-top: 16px; }
+.status.loading { background: rgba(0,212,255,0.08); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+.status.error { background: rgba(255,71,87,0.08); color: var(--mp); border: 1px solid rgba(255,71,87,0.3); }
+.status.success { background: rgba(46,213,115,0.08); color: var(--match); border: 1px solid rgba(46,213,115,0.3); }
+.source-case { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-top: 24px; }
+.source-case.mp { border-left: 4px solid var(--mp); }
+.source-case.up { border-left: 4px solid var(--up); }
+.source-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.source-type { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.source-type.mp { color: var(--mp); }
+.source-type.up { color: var(--up); }
+.source-name { font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.source-meta { color: var(--muted); font-size: 12px; font-family: 'DM Mono', monospace; }
+.source-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px 20px; margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--border); }
+.source-field { font-size: 12px; }
+.source-field-label { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; }
+.source-field-value { color: var(--text); }
+.results-header { display: flex; justify-content: space-between; align-items: center; margin: 32px 0 16px; }
+.results-title { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+.results-count { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); }
+.match-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; transition: border-color 0.15s; }
+.match-card:hover { border-color: var(--border2); }
+.match-card.high { border-left: 4px solid var(--high); }
+.match-card.medium { border-left: 4px solid var(--medium); }
+.match-card.low { border-left: 4px solid var(--low); }
+.match-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.match-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.match-tier { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px; padding: 2px 8px; border-radius: 3px; text-transform: uppercase; margin-right: 8px; }
+.match-tier.high { background: rgba(46,213,115,0.15); color: var(--high); border: 1px solid var(--high); }
+.match-tier.medium { background: rgba(255,165,2,0.15); color: var(--medium); border: 1px solid var(--medium); }
+.match-tier.low { background: rgba(90,106,126,0.15); color: var(--low); border: 1px solid var(--low); }
+.match-score { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: #fff; letter-spacing: 1px; }
+.match-score.high { color: var(--high); }
+.match-score.medium { color: var(--medium); }
+.match-score.low { color: var(--low); }
+.match-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 16px; margin: 10px 0; font-size: 12px; }
+.match-field { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; }
+.match-field b { color: var(--text); font-weight: 500; }
+.match-reasons { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 8px; }
+.reason-chip { padding: 3px 10px; border-radius: 3px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.5px; }
+.reason-chip.for { background: rgba(46,213,115,0.1); color: var(--match); border: 1px solid rgba(46,213,115,0.3); }
+.reason-chip.against { background: rgba(255,71,87,0.1); color: var(--mismatch); border: 1px solid rgba(255,71,87,0.3); }
+.match-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.match-links a { color: var(--accent); font-family: 'DM Mono', monospace; font-size: 11px; text-decoration: none; }
+.match-links a:hover { text-decoration: underline; }
+.ai-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.ai-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+.ai-body { color: var(--text); font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+.ai-loading { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; font-style: italic; }
+.ai-error { color: var(--mismatch); font-family: 'DM Mono', monospace; font-size: 11px; }
+@media (max-width: 800px) {
+  .search-row { grid-template-columns: 1fr; }
+  nav { padding: 0 20px; }
+  .container { padding: 24px 16px; }
+  h1 { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">CLEAR<span>NAME</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Reports</a></li>
+    <li><a href="verify.html" class="active">Search &amp; Verify</a></li>
+  </ul>
+</nav>
+<div class="container">
+  <div id="adminGate" class="admin-gate">
+    <h2>Admin Access Required</h2>
+    <p>The Search &amp; Verify tool runs case matching in real time against enriched NamUs data. Enter admin password to continue.</p>
+    <label class="form-label">Password</label>
+    <input type="password" class="form-input" id="adminPw" placeholder="Enter password..." style="margin-bottom:16px;" onkeydown="if(event.key==='Enter')checkAdmin()">
+    <button class="btn" onclick="checkAdmin()" style="width:100%;">Unlock</button>
+  </div>
+  <div id="apiKeySetup" class="admin-gate tool-hidden">
+    <h2>Anthropic API Key</h2>
+    <p>Paste your Anthropic API key to enable AI reasoning on each match. Stored only in your browser (localStorage) — never sent anywhere except the Anthropic API.</p>
+    <label class="form-label">API Key</label>
+    <input type="password" class="form-input" id="apiKeyInput" placeholder="sk-ant-..." style="margin-bottom:16px;">
+    <button class="btn" onclick="saveApiKey()" style="width:100%; margin-bottom:8px;">Save &amp; Continue</button>
+    <button class="btn btn-secondary" onclick="skipApiKey()" style="width:100%;">Skip — matches only, no AI</button>
+  </div>
+  <div id="mainTool" class="tool-hidden">
+    <div class="hero-tag">Search &amp; Verify</div>
+    <h1>Enter a case, find the <em>candidates.</em></h1>
+    <p class="hero-desc">Enter one NamUs case number — either a Missing Person (MP) or Unidentified Remains (UP). The tool searches the enriched dataset nationwide, ranks the top potential matches by score, and provides AI reasoning on each candidate.</p>
+    <div class="search-panel">
+      <div class="data-status" id="dataStatus">
+        <div class="data-dot"></div>
+        <div id="dataStatusText">Dataset not loaded yet</div>
+      </div>
+      <div class="search-row">
+        <div>
+          <label class="form-label">Case Number</label>
+          <input type="text" class="form-input" id="caseInput" placeholder="MP77291, UP55208, or just a number..." onkeydown="if(event.key==='Enter')runSearch()">
+        </div>
+        <div>
+          <label class="form-label">Case Type</label>
+          <select class="form-input" id="caseType">
+            <option value="auto">Auto-detect</option>
+            <option value="mp">Missing Person (MP)</option>
+            <option value="up">Unidentified Remains (UP)</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Show</label>
+          <select class="form-input" id="topN">
+            <option value="5">Top 5</option>
+            <option value="10" selected>Top 10</option>
+            <option value="25">Top 25</option>
+            <option value="50">Top 50</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-actions">
+        <button class="btn" onclick="runSearch()" id="searchBtn">Find Matches</button>
+        <button class="btn btn-secondary" onclick="clearApiKey()" style="margin-left:auto;">Change API Key</button>
+      </div>
+      <div id="status"></div>
+    </div>
+    <div id="results"></div>
+  </div>
+</div>
+<script>
+const ADMIN_PASSWORD = 'clearname2026';
+const MP_CSV_URL = 'missing_enriched.csv';
+const UP_CSV_URL = 'unidentified_enriched.csv';
+
+let mpData = [];
+let upData = [];
+let dataLoaded = false;
+
+const BORDER_STATES = {
+  AL:['AL','FL','GA','MS','TN'], AK:['AK'], AZ:['AZ','CA','CO','NM','NV','UT'],
+  AR:['AR','LA','MO','MS','OK','TN','TX'], CA:['CA','AZ','NV','OR'],
+  CO:['CO','AZ','KS','NE','NM','OK','UT','WY'], CT:['CT','MA','NY','RI'],
+  DE:['DE','MD','NJ','PA'], FL:['FL','AL','GA'], GA:['GA','AL','FL','NC','SC','TN'],
+  HI:['HI'], ID:['ID','MT','NV','OR','UT','WA','WY'], IL:['IL','IA','IN','KY','MO','WI'],
+  IN:['IN','IL','KY','MI','OH'], IA:['IA','IL','MN','MO','NE','SD','WI'],
+  KS:['KS','CO','MO','NE','OK'], KY:['KY','IL','IN','MO','OH','TN','VA','WV'],
+  LA:['LA','AR','MS','TX'], ME:['ME','NH'], MD:['MD','DC','DE','PA','VA','WV'],
+  MA:['MA','CT','NH','NY','RI','VT'], MI:['MI','IN','OH','WI'],
+  MN:['MN','IA','ND','SD','WI'], MS:['MS','AL','AR','LA','TN'],
+  MO:['MO','AR','IA','IL','KS','KY','NE','OK','TN'], MT:['MT','ID','ND','SD','WY'],
+  NE:['NE','CO','IA','KS','MO','SD','WY'], NV:['NV','AZ','CA','ID','OR','UT'],
+  NH:['NH','MA','ME','VT'], NJ:['NJ','DE','NY','PA'], NM:['NM','AZ','CO','OK','TX','UT'],
+  NY:['NY','CT','MA','NJ','PA','VT'], NC:['NC','GA','SC','TN','VA'],
+  ND:['ND','MN','MT','SD'], OH:['OH','IN','KY','MI','PA','WV'],
+  OK:['OK','AR','CO','KS','MO','NM','TX'], OR:['OR','CA','ID','NV','WA'],
+  PA:['PA','DE','MD','NJ','NY','OH','WV'], RI:['RI','CT','MA'], SC:['SC','GA','NC'],
+  SD:['SD','IA','MN','MT','ND','NE','WY'], TN:['TN','AL','AR','GA','KY','MS','MO','NC','VA'],
+  TX:['TX','AR','LA','NM','OK'], UT:['UT','AZ','CO','ID','NV','NM','WY'],
+  VT:['VT','MA','NH','NY'], VA:['VA','DC','KY','MD','NC','TN','WV'],
+  WA:['WA','ID','OR'], WV:['WV','KY','MD','OH','PA','VA'],
+  WI:['WI','IA','IL','MI','MN'], WY:['WY','CO','ID','MT','NE','SD','UT'],
+  DC:['DC','MD','VA']
+};
+
+function checkAdmin() {
+  const pw = document.getElementById('adminPw').value;
+  if (pw === ADMIN_PASSWORD) {
+    document.getElementById('adminGate').classList.add('tool-hidden');
+    const savedKey = localStorage.getItem('anthropic_api_key');
+    if (savedKey) showMainTool();
+    else document.getElementById('apiKeySetup').classList.remove('tool-hidden');
+  } else {
+    const input = document.getElementById('adminPw');
+    input.style.borderColor = '#ff4757';
+    input.value = '';
+    input.placeholder = 'Wrong password';
+    setTimeout(() => { input.style.borderColor = ''; input.placeholder = 'Enter password...'; }, 1500);
+  }
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    alert('That does not look like a valid Anthropic API key. It should start with sk-ant-');
+    return;
+  }
+  localStorage.setItem('anthropic_api_key', key);
+  document.getElementById('apiKeySetup').classList.add('tool-hidden');
+  showMainTool();
+}
+
+function skipApiKey() {
+  localStorage.setItem('anthropic_api_key', 'SKIP');
+  document.getElementById('apiKeySetup').classList.add('tool-hidden');
+  showMainTool();
+}
+
+function clearApiKey() {
+  if (confirm('Clear saved API key? You will need to enter it again.')) {
+    localStorage.removeItem('anthropic_api_key');
+    location.reload();
+  }
+}
+
+function showMainTool() {
+  document.getElementById('mainTool').classList.remove('tool-hidden');
+  loadDataset();
+}
+
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+function setDataStatus(msg, state) {
+  const el = document.getElementById('dataStatus');
+  el.className = 'data-status ' + state;
+  document.getElementById('dataStatusText').textContent = msg;
+}
+
+async function loadDataset() {
+  setDataStatus('Loading enriched dataset...', 'loading');
+  try {
+    const [mpText, upText] = await Promise.all([
+      fetch(MP_CSV_URL).then(r => { if (!r.ok) throw new Error('MP CSV: HTTP ' + r.status); return r.text(); }),
+      fetch(UP_CSV_URL).then(r => { if (!r.ok) throw new Error('UP CSV: HTTP ' + r.status); return r.text(); })
+    ]);
+    mpData = Papa.parse(mpText, { header: true, skipEmptyLines: true }).data.map(normalizeMP).filter(r => r.id);
+    upData = Papa.parse(upText, { header: true, skipEmptyLines: true }).data.map(normalizeUP).filter(r => r.id);
+    dataLoaded = true;
+    setDataStatus('Ready — ' + mpData.length.toLocaleString() + ' missing persons, ' + upData.length.toLocaleString() + ' unidentified remains', 'ready');
+  } catch (err) {
+    setDataStatus('Could not load CSVs. Place missing_enriched.csv and unidentified_enriched.csv in the same folder as this page. (' + err.message + ')', 'error');
+  }
+}
+
+function safe(v) { return (v || '').toString().trim(); }
+function safeInt(v) { const n = parseInt(v); return isNaN(n) ? null : n; }
+function safeFloat(v) { const n = parseFloat(v); return isNaN(n) ? null : n; }
+
+function normalizeSex(v) {
+  const s = safe(v).toLowerCase();
+  if (s.startsWith('m') && !s.startsWith('mixed')) return 'M';
+  if (s.startsWith('f')) return 'F';
+  return '';
+}
+
+function normalizeState(v) {
+  const map = {'alabama':'AL','alaska':'AK','arizona':'AZ','arkansas':'AR','california':'CA','colorado':'CO','connecticut':'CT','delaware':'DE','florida':'FL','georgia':'GA','hawaii':'HI','idaho':'ID','illinois':'IL','indiana':'IN','iowa':'IA','kansas':'KS','kentucky':'KY','louisiana':'LA','maine':'ME','maryland':'MD','massachusetts':'MA','michigan':'MI','minnesota':'MN','mississippi':'MS','missouri':'MO','montana':'MT','nebraska':'NE','nevada':'NV','new hampshire':'NH','new jersey':'NJ','new mexico':'NM','new york':'NY','north carolina':'NC','north dakota':'ND','ohio':'OH','oklahoma':'OK','oregon':'OR','pennsylvania':'PA','rhode island':'RI','south carolina':'SC','south dakota':'SD','tennessee':'TN','texas':'TX','utah':'UT','vermont':'VT','virginia':'VA','washington':'WA','west virginia':'WV','wisconsin':'WI','wyoming':'WY','district of columbia':'DC'};
+  const s = safe(v);
+  if (s.length === 2) return s.toUpperCase();
+  return map[s.toLowerCase()] || s.toUpperCase();
+}
+
+function raceParts(str) {
+  const s = safe(str).toLowerCase();
+  const parts = new Set();
+  if (s.includes('white') || s.includes('caucasian')) parts.add('white');
+  if (s.includes('black') || s.includes('african')) parts.add('black');
+  if (s.includes('hispanic') || s.includes('latino')) parts.add('hispanic');
+  if (s.includes('asian')) parts.add('asian');
+  if (s.includes('native') || s.includes('american indian')) parts.add('native');
+  if (s.includes('pacific') || s.includes('hawaiian')) parts.add('pacific');
+  if (s.includes('mixed') || s.includes('multi')) parts.add('mixed');
+  return parts;
+}
+
+function normalizeHair(v) {
+  const s = safe(v).toLowerCase();
+  if (!s) return '';
+  if (s.includes('black')) return 'black';
+  if (s.includes('brown') || s.includes('dark')) return 'brown';
+  if (s.includes('blond') || s.includes('sandy') || s.includes('strawberry') || s.includes('yellow')) return 'blonde';
+  if (s.includes('red') || s.includes('auburn')) return 'red';
+  if (s.includes('gray') || s.includes('grey') || s.includes('white') || s.includes('silver')) return 'gray';
+  if (s.includes('bald')) return 'bald';
+  return '';
+}
+
+function normalizeEye(v) {
+  const s = safe(v).toLowerCase();
+  if (!s) return '';
+  if (s.includes('brown') || s.includes('dark')) return 'brown';
+  if (s.includes('blue')) return 'blue';
+  if (s.includes('green')) return 'green';
+  if (s.includes('hazel')) return 'hazel';
+  if (s.includes('gray') || s.includes('grey')) return 'gray';
+  if (s.includes('black')) return 'black';
+  return '';
+}
+
+function normalizeMP(row) {
+  return {
+    type: 'mp',
+    id: safe(row['Case Number']),
+    first: safe(row['Legal First Name']),
+    last: safe(row['Legal Last Name']),
+    sex: normalizeSex(row['Biological Sex']),
+    race_raw: safe(row['Race / Ethnicity']),
+    race_parts: raceParts(row['Race / Ethnicity']),
+    age: safeInt(row['Missing Age']),
+    date: safe(row['DLC']),
+    city: safe(row['City']),
+    county: safe(row['County']).toLowerCase(),
+    state: normalizeState(row['State']),
+    hair: normalizeHair(row['Hair Color']),
+    hair_raw: safe(row['Hair Color']),
+    eye: normalizeEye(row['Eye Color']),
+    eye_raw: safe(row['Eye Color']),
+    features: safe(row['Distinctive Features']),
+    height: safe(row['Height (inches)']),
+  };
+}
+
+function normalizeUP(row) {
+  const amin = safeInt(row['Age From']);
+  const amax = safeInt(row['Age To']) || amin;
+  return {
+    type: 'up',
+    id: safe(row['Case']),
+    sex: normalizeSex(row['Biological Sex']),
+    race_raw: safe(row['Race / Ethnicity']),
+    race_parts: raceParts(row['Race / Ethnicity']),
+    age_min: amin,
+    age_max: amax,
+    date: safe(row['DBF']),
+    city: safe(row['City']),
+    county: safe(row['County']).toLowerCase(),
+    state: normalizeState(row['State']),
+    hair: normalizeHair(row['Hair Color']),
+    hair_raw: safe(row['Hair Color']),
+    eye: normalizeEye(row['Eye Color']),
+    eye_raw: safe(row['Eye Color']),
+    features: safe(row['Distinctive Features']),
+    height: safe(row['Height (inches)']),
+  };
+}
+
+function parseDate(s) {
+  if (!s) return null;
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function scoreMatch(mp, up) {
+  let score = 0;
+  const reasonsFor = [];
+  const reasonsAgainst = [];
+
+  if (mp.sex && up.sex && mp.sex === up.sex) {
+    score += 15; reasonsFor.push('Sex matches');
+  } else if (mp.sex && up.sex && mp.sex !== up.sex) {
+    reasonsAgainst.push('Sex differs');
+  }
+
+  if (mp.race_parts.size && up.race_parts.size) {
+    const overlap = [...mp.race_parts].some(r => up.race_parts.has(r));
+    if (overlap) { score += 15; reasonsFor.push('Race match'); }
+    else reasonsAgainst.push('Race differs');
+  }
+
+  const mpAge = mp.age;
+  const upMin = up.age_min;
+  const upMax = up.age_max || upMin;
+  if (mpAge !== null && upMin !== null) {
+    if (mpAge >= upMin && mpAge <= upMax) {
+      score += 20; reasonsFor.push('Age match');
+    } else {
+      const diff = mpAge < upMin ? upMin - mpAge : mpAge - upMax;
+      if (diff <= 3) { score += 15; reasonsFor.push('Age close (' + String.fromCharCode(177) + '3yr)'); }
+      else if (diff <= 7) { score += 10; reasonsFor.push('Age within 7yr'); }
+      else if (diff <= 15) { score += 5; reasonsFor.push('Age within 15yr'); }
+      else reasonsAgainst.push('Age differs by ' + diff + 'yr');
+    }
+  }
+
+  if (mp.state === up.state) {
+    score += 5; reasonsFor.push('Same state (' + mp.state + ')');
+    if (mp.county && up.county && mp.county === up.county) {
+      score += 5; reasonsFor.push('Same county');
+    }
+  } else {
+    const neighbors = BORDER_STATES[mp.state] || [];
+    if (neighbors.includes(up.state)) {
+      score += 2; reasonsFor.push('Adjacent states (' + mp.state + '/' + up.state + ')');
+    }
+  }
+
+  const mpDate = parseDate(mp.date);
+  const upDate = parseDate(up.date);
+  if (mpDate && upDate) {
+    const diffDays = Math.round((upDate - mpDate) / (1000*60*60*24));
+    if (diffDays >= -90 && diffDays <= 14) { score += 40; reasonsFor.push('Body found within 2 weeks (' + diffDays + 'd)'); }
+    else if (diffDays >= -90 && diffDays <= 60) { score += 32; reasonsFor.push('Body found within 2 months'); }
+    else if (diffDays >= -90 && diffDays <= 180) { score += 24; reasonsFor.push('Body found within 6 months'); }
+    else if (diffDays >= -90 && diffDays <= 365) { score += 18; reasonsFor.push('Body found within 1 year'); }
+    else if (diffDays >= -90 && diffDays <= 1095) { score += 14; reasonsFor.push('Body found within 3 years'); }
+    else if (diffDays < -90) reasonsAgainst.push('Body found before disappearance');
+  }
+
+  if (mp.hair && up.hair) {
+    if (mp.hair === up.hair) { score += 10; reasonsFor.push('Hair color match (' + mp.hair_raw + ')'); }
+    else reasonsAgainst.push('Hair differs (' + mp.hair_raw + ' / ' + up.hair_raw + ')');
+  }
+
+  if (mp.eye && up.eye) {
+    if (mp.eye === up.eye) { score += 8; reasonsFor.push('Eye color match (' + mp.eye_raw + ')'); }
+    else reasonsAgainst.push('Eye differs (' + mp.eye_raw + ' / ' + up.eye_raw + ')');
+  }
+
+  const mpFeat = mp.features.toLowerCase();
+  const upFeat = up.features.toLowerCase();
+  if (mpFeat && upFeat) {
+    const keywords = ['tattoo','scar','piercing','birthmark','amputation','prosthetic','mole','brand'];
+    const shared = keywords.filter(k => mpFeat.includes(k) && upFeat.includes(k));
+    if (shared.length) {
+      score += Math.min(7, shared.length * 3);
+      reasonsFor.push('Shared features: ' + shared.join(', '));
+    }
+  }
+
+  const mh = safeFloat(mp.height);
+  const uh = safeFloat(up.height);
+  if (mh && uh) {
+    const diff = Math.abs(mh - uh);
+    if (diff <= 2) { score += 5; reasonsFor.push('Height close (' + Math.round(mh) + '/' + Math.round(uh) + 'in)'); }
+    else if (diff <= 4) { score += 2; reasonsFor.push('Height approx'); }
+    else reasonsAgainst.push('Height differs by ' + Math.round(diff) + 'in');
+  }
+
+  let tier = 'LOW';
+  if (score >= 80) tier = 'HIGH';
+  else if (score >= 60) tier = 'MEDIUM';
+
+  return { score: score, tier: tier, reasonsFor: reasonsFor, reasonsAgainst: reasonsAgainst };
+}
+
+async function runSearch() {
+  if (!dataLoaded) {
+    setStatus('Dataset still loading. Please wait.', 'error');
+    return;
+  }
+
+  const rawInput = document.getElementById('caseInput').value.trim();
+  const typeChoice = document.getElementById('caseType').value;
+  const topN = parseInt(document.getElementById('topN').value);
+
+  if (!rawInput) {
+    setStatus('Please enter a case number.', 'error');
+    return;
+  }
+
+  let caseType = typeChoice;
+  const cleanId = rawInput.replace(/^(MP|UP)/i, '').trim();
+
+  if (typeChoice === 'auto') {
+    const upper = rawInput.toUpperCase();
+    if (upper.startsWith('MP')) caseType = 'mp';
+    else if (upper.startsWith('UP')) caseType = 'up';
+    else {
+      setStatus('Case type could not be detected. Prefix with MP or UP, or select the type from the dropdown.', 'error');
+      return;
+    }
+  }
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.textContent = 'Searching...';
+  document.getElementById('results').innerHTML = '';
+
+  try {
+    let sourceCase, candidates;
+    if (caseType === 'mp') {
+      sourceCase = mpData.find(m => m.id.replace(/^MP/i,'') === cleanId || m.id === rawInput.toUpperCase());
+      if (!sourceCase) throw new Error('Case MP' + cleanId + ' not found in enriched dataset.');
+      setStatus('Scoring against ' + upData.length.toLocaleString() + ' unidentified remains...', 'loading');
+      candidates = scoreAgainstAll(sourceCase, upData);
+    } else {
+      sourceCase = upData.find(u => u.id.replace(/^UP/i,'') === cleanId || u.id === rawInput.toUpperCase());
+      if (!sourceCase) throw new Error('Case UP' + cleanId + ' not found in enriched dataset.');
+      setStatus('Scoring against ' + mpData.length.toLocaleString() + ' missing persons...', 'loading');
+      candidates = scoreAgainstAll(sourceCase, mpData);
+    }
+
+    candidates.sort((a,b) => b.score - a.score);
+    const top = candidates.slice(0, topN);
+
+    renderResults(sourceCase, top, caseType);
+
+    const apiKey = localStorage.getItem('anthropic_api_key');
+    if (apiKey && apiKey !== 'SKIP') {
+      setStatus('Found ' + top.length + ' candidates. Running AI analysis...', 'loading');
+      await runAllAI(sourceCase, top, caseType, apiKey);
+      setStatus('Analysis complete on all ' + top.length + ' candidates.', 'success');
+    } else {
+      setStatus('Ranking complete. Found ' + top.length + ' candidates.', 'success');
+    }
+  } catch (err) {
+    setStatus('Error: ' + err.message, 'error');
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Find Matches';
+  }
+}
+
+function scoreAgainstAll(source, targets) {
+  const results = [];
+  for (const t of targets) {
+    let mp, up;
+    if (source.type === 'mp') { mp = source; up = t; }
+    else { mp = t; up = source; }
+    const r = scoreMatch(mp, up);
+    if (r.score < 30) continue;
+    results.push({
+      candidate: t,
+      score: r.score,
+      tier: r.tier,
+      reasonsFor: r.reasonsFor,
+      reasonsAgainst: r.reasonsAgainst,
+      crossState: source.state !== t.state
+    });
+  }
+  return results;
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function titleCase(s) {
+  return String(s||'').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function renderSourceCase(c, type) {
+  const name = type === 'mp'
+    ? ((c.first + ' ' + c.last).trim() || 'Unknown')
+    : 'Case ' + c.id;
+  const url = type === 'mp'
+    ? 'https://www.namus.gov/MissingPersons/Case#/' + c.id.replace(/^MP/i,'') + '?navCase'
+    : 'https://www.namus.gov/UnidentifiedPersons/Case#/' + c.id.replace(/^UP/i,'') + '?navCase';
+  const typeLabel = type === 'mp' ? 'Missing Person' : 'Unidentified Remains';
+  const ageDisplay = type === 'mp' ? (c.age || '?') : ((c.age_min || '?') + '-' + (c.age_max || '?'));
+  const dateLabel = type === 'mp' ? 'Last seen' : 'Body found';
+
+  return '<div class="source-case ' + type + '">' +
+    '<div class="source-header">' +
+      '<div>' +
+        '<div class="source-type ' + type + '">SOURCE ' + String.fromCharCode(183) + ' ' + typeLabel + '</div>' +
+        '<div class="source-name">' + escHtml(name) + '</div>' +
+        '<div class="source-meta">' + escHtml(c.id) + ' ' + String.fromCharCode(183) + ' ' + escHtml(c.sex) + ' ' + String.fromCharCode(183) + ' ' + escHtml(c.race_raw) + ' ' + String.fromCharCode(183) + ' Age ' + escHtml(String(ageDisplay)) + '</div>' +
+        '<div class="source-meta">' + dateLabel + ' ' + escHtml(c.date || 'unknown') + ' ' + String.fromCharCode(183) + ' ' + escHtml(c.county ? titleCase(c.county)+', ' : '') + escHtml(c.state) + '</div>' +
+      '</div>' +
+      '<a href="' + url + '" target="_blank" style="color:var(--accent);font-family:\'DM Mono\',monospace;font-size:11px;text-decoration:none;">Open NamUs &rarr;</a>' +
+    '</div>' +
+    '<div class="source-fields">' +
+      (c.hair_raw ? '<div class="source-field"><div class="source-field-label">HAIR</div><div class="source-field-value">' + escHtml(c.hair_raw) + '</div></div>' : '') +
+      (c.eye_raw ? '<div class="source-field"><div class="source-field-label">EYES</div><div class="source-field-value">' + escHtml(c.eye_raw) + '</div></div>' : '') +
+      (c.height ? '<div class="source-field"><div class="source-field-label">HEIGHT</div><div class="source-field-value">' + escHtml(c.height) + 'in</div></div>' : '') +
+      (c.features ? '<div class="source-field" style="grid-column:1/-1;"><div class="source-field-label">DISTINCTIVE FEATURES</div><div class="source-field-value">' + escHtml(c.features) + '</div></div>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+function renderMatchCard(match, sourceType, idx) {
+  const c = match.candidate;
+  const targetType = sourceType === 'mp' ? 'up' : 'mp';
+  const name = targetType === 'mp'
+    ? ((c.first + ' ' + c.last).trim() || 'Unknown')
+    : 'Case ' + c.id;
+  const url = targetType === 'mp'
+    ? 'https://www.namus.gov/MissingPersons/Case#/' + c.id.replace(/^MP/i,'') + '?navCase'
+    : 'https://www.namus.gov/UnidentifiedPersons/Case#/' + c.id.replace(/^UP/i,'') + '?navCase';
+  const typeLabel = targetType === 'mp' ? 'Missing Person' : 'Unidentified Remains';
+  const ageDisplay = targetType === 'mp' ? (c.age || '?') : ((c.age_min || '?') + '-' + (c.age_max || '?'));
+  const dateLabel = targetType === 'mp' ? 'Last seen' : 'Body found';
+  const tierClass = match.tier.toLowerCase();
+  const crossBadge = match.crossState
+    ? '<span style="font-family:DM Mono,monospace;font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid #a855f7;margin-right:6px;">CROSS-STATE</span>'
+    : '';
+
+  const forChips = match.reasonsFor.map(r => '<span class="reason-chip for">+ ' + escHtml(r) + '</span>').join('');
+  const againstChips = match.reasonsAgainst.map(r => '<span class="reason-chip against">! ' + escHtml(r) + '</span>').join('');
+
+  return '<div class="match-card ' + tierClass + '" id="match-' + idx + '">' +
+    '<div class="match-header">' +
+      '<div>' +
+        '<div style="margin-bottom:6px;">' + crossBadge +
+          '<span class="match-tier ' + tierClass + '">' + match.tier + '</span>' +
+          '<span style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:10px;">' + typeLabel + '</span>' +
+        '</div>' +
+        '<div class="match-title">' + escHtml(name) + '</div>' +
+        '<div style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">' + escHtml(c.id) + '</div>' +
+      '</div>' +
+      '<div class="match-score ' + tierClass + '">' + match.score + '<span style="font-size:14px;color:var(--muted);">/100</span></div>' +
+    '</div>' +
+    '<div class="match-fields">' +
+      '<div class="match-field">Sex ' + String.fromCharCode(183) + ' <b>' + escHtml(c.sex || '?') + '</b></div>' +
+      '<div class="match-field">Race ' + String.fromCharCode(183) + ' <b>' + escHtml(c.race_raw || '?') + '</b></div>' +
+      '<div class="match-field">Age ' + String.fromCharCode(183) + ' <b>' + escHtml(String(ageDisplay)) + '</b></div>' +
+      '<div class="match-field">' + dateLabel + ' ' + String.fromCharCode(183) + ' <b>' + escHtml(c.date || '?') + '</b></div>' +
+      '<div class="match-field">Location ' + String.fromCharCode(183) + ' <b>' + escHtml((c.county ? titleCase(c.county) + ', ' : '') + c.state) + '</b></div>' +
+      (c.hair_raw ? '<div class="match-field">Hair ' + String.fromCharCode(183) + ' <b>' + escHtml(c.hair_raw) + '</b></div>' : '') +
+      (c.eye_raw ? '<div class="match-field">Eyes ' + String.fromCharCode(183) + ' <b>' + escHtml(c.eye_raw) + '</b></div>' : '') +
+      (c.height ? '<div class="match-field">Height ' + String.fromCharCode(183) + ' <b>' + escHtml(c.height) + 'in</b></div>' : '') +
+    '</div>' +
+    '<div class="match-reasons">' + forChips + againstChips + '</div>' +
+    '<div class="match-footer">' +
+      '<div class="match-links">' +
+        '<a href="' + url + '" target="_blank">Open NamUs &rarr;</a>' +
+      '</div>' +
+    '</div>' +
+    '<div class="ai-section" id="ai-' + idx + '"></div>' +
+  '</div>';
+}
+
+function renderResults(source, matches, sourceType) {
+  let html = renderSourceCase(source, sourceType);
+  const highCount = matches.filter(m => m.tier === 'HIGH').length;
+  const medCount = matches.filter(m => m.tier === 'MEDIUM').length;
+  html += '<div class="results-header">' +
+    '<div class="results-title">Top ' + matches.length + ' candidate matches</div>' +
+    '<div class="results-count">' + highCount + ' HIGH ' + String.fromCharCode(183) + ' ' + medCount + ' MEDIUM</div>' +
+  '</div>';
+  matches.forEach((m, i) => { html += renderMatchCard(m, sourceType, i); });
+  document.getElementById('results').innerHTML = html;
+}
+
+async function runAllAI(source, matches, sourceType, apiKey) {
+  matches.forEach((_, i) => {
+    const el = document.getElementById('ai-' + i);
+    if (el) el.innerHTML = '<div class="ai-title">AI Analysis</div><div class="ai-loading">Running analysis...</div>';
+  });
+
+  const batchSize = 5;
+  for (let i = 0; i < matches.length; i += batchSize) {
+    const batch = matches.slice(i, i + batchSize);
+    await Promise.all(batch.map((m, j) => runOneAI(source, m, sourceType, apiKey, i + j)));
+  }
+}
+
+async function runOneAI(source, match, sourceType, apiKey, idx) {
+  const el = document.getElementById('ai-' + idx);
+  if (!el) return;
+
+  const mp = sourceType === 'mp' ? source : match.candidate;
+  const up = sourceType === 'mp' ? match.candidate : source;
+
+  const prompt = 'You are analyzing two NamUs case records to help investigators decide whether they may be the same person.\n\n' +
+    'MISSING PERSON (' + mp.id + '):\n' +
+    'Name: ' + ((mp.first + ' ' + mp.last).trim() || 'Unknown') + '\n' +
+    'Sex: ' + mp.sex + ', Race: ' + mp.race_raw + ', Age: ' + mp.age + '\n' +
+    'Last seen: ' + mp.date + ' in ' + mp.city + ', ' + mp.county + ', ' + mp.state + '\n' +
+    'Hair: ' + mp.hair_raw + ', Eyes: ' + mp.eye_raw + ', Height: ' + mp.height + 'in\n' +
+    'Distinctive features: ' + (mp.features || 'none listed') + '\n\n' +
+    'UNIDENTIFIED REMAINS (' + up.id + '):\n' +
+    'Sex: ' + up.sex + ', Race: ' + up.race_raw + ', Estimated age: ' + up.age_min + '-' + up.age_max + '\n' +
+    'Body found: ' + up.date + ' in ' + up.city + ', ' + up.county + ', ' + up.state + '\n' +
+    'Hair: ' + up.hair_raw + ', Eyes: ' + up.eye_raw + ', Height: ' + up.height + 'in\n' +
+    'Distinctive features: ' + (up.features || 'none listed') + '\n\n' +
+    'Algorithmic score: ' + match.score + '/100 (' + match.tier + ')\n\n' +
+    'Provide a concise investigator-facing analysis in 3-4 sentences covering:\n' +
+    '1. Whether the timeline and geography are plausible\n' +
+    '2. The strongest alignment(s) and any hard contradiction(s)\n' +
+    '3. Whether this pair is worth investigator follow-up or should likely be excluded\n\n' +
+    'Be direct. Do not overstate certainty. This is a candidate for human review.';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error('API ' + resp.status + ': ' + err.substring(0, 150));
+    }
+    const data = await resp.json();
+    const text = (data.content && data.content[0] && data.content[0].text) || 'No analysis returned.';
+    el.innerHTML = '<div class="ai-title">AI Analysis</div><div class="ai-body">' + escHtml(text) + '</div>';
+  } catch (err) {
+    el.innerHTML = '<div class="ai-title">AI Analysis</div><div class="ai-error">Failed: ' + escHtml(err.message) + '</div>';
+  }
+}
+</script>
+</body>
+</html>
